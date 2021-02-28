@@ -45,11 +45,16 @@ def load_images_by_metal_key(metal_key):
 	# demo version for two links
 	filled_img = None
 	if metal_key == GOLDEN_COLOR:
-		filled_img = pygame.image.load(os.path.join(SCRIPT_DIR, "golden_ref.png"))
+		filled_img = pygame.image.load(os.path.join(SCRIPT_DIR, "resourses", "golden_ref.png"))
 	elif metal_key == BLACK_IRON_COLOR:
-		filled_img = pygame.image.load(os.path.join(SCRIPT_DIR, "black_iron_ref.png"))
-	empty_img = pygame.image.load(os.path.join(SCRIPT_DIR, "empty_ref.png"))
+		filled_img = pygame.image.load(os.path.join(SCRIPT_DIR, "resourses", "black_iron_ref.png"))
+	empty_img = pygame.image.load(os.path.join(SCRIPT_DIR, "resourses", "empty_ref.png"))
 	return empty_img, filled_img
+
+
+def set_gs_to_set():
+	from Game import Game, GameState
+	Game.switch_state(GameState.SETTINGS)
 
 
 if __name__ == "__main__":

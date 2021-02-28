@@ -22,6 +22,10 @@ class Link:
 		if (self.w != tw) or (self.h != th):
 			print("Erorr images arent same")
 
+	# todo use property decorator
+	def set_fill_rate(self, value):
+		self._filling_rate = min(self.h, value)
+
 	def check_metal_compatibility(self, ball):
 		return self._metal_key == ball._metal_key
 
@@ -56,12 +60,3 @@ class Link:
 		screen.blit(self._empty_img, start_pos, (*A, *B))
 		screen.blit(self._filled_img,
 					(start_pos[0], start_pos[1] + surface_y), (*C, *D))
-
-
-
-
-
-
-
-import site
-print(site.getsitepackages())

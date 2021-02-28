@@ -5,13 +5,13 @@ from Link import Link
 from ball import Ball
 
 
-class Chanel:
-	def __init__(self, link_metal_key, boundaries):
+class Channel:
+	def __init__(self, link_metal_key, boundaries, filling_rate=None):
 		self.rect = boundaries
 		self.balls = []
 		self.ball_cx = self._init_ball_cx()
 		# should be used only while init
-		self.link, self.link_place = self._init_link(link_metal_key)
+		self.link, self.link_place = self._init_link(link_metal_key, filling_rate)
 		# link_is_free means free to recieve ball
 		self.link_is_open = True
 		self.swap_thrd = 0.5
@@ -23,7 +23,7 @@ class Chanel:
 		self.DISCARD_BALL = "discard"
 		self.FILL_LINK_WITH_BALL = "fill"
 
-	def _init_link(self, link_metal_key):
+	def _init_link(self, link_metal_key, filling_rate=None):
 		left, top, w, h, = self.rect
 		# resize img that link rectangle w fits channel w
 		# todo keep metal_keys as consts in some file
@@ -39,6 +39,8 @@ class Chanel:
 		# link should be at the bottom of the chanel (load link as the one method)
 		link_start_pos = (left, top + h - link_h)
 		link = Link(link_start_pos, empty_img, filled_img, link_metal_key)
+		if filling_rate is not None:
+			link.set_fill_rate(filling_rate)
 		link_place = pygame.Rect(*link_start_pos, link_w, link_h)
 		return link, link_place
 
@@ -124,8 +126,8 @@ if __name__ == "__main__":
 	screen = pygame.display.set_mode(size)
 	rect1 = pygame.Rect(100, 0, 200, 700)
 	rect2 = pygame.Rect(350, 0, 200, 700)
-	gold_channel = Chanel(utils.GOLDEN_COLOR, rect1)
-	black_iron_channel = Chanel(utils.BLACK_IRON_COLOR, rect2)
+	gold_channel = Channel(utils.GOLDEN_COLOR, rect1)
+	black_iron_channel = Channel(utils.BLACK_IRON_COLOR, rect2)
 
 	ball_speed = (0, 2)
 	ball = Ball(utils.GOLDEN_COLOR, ball_speed)
