@@ -6,7 +6,7 @@ import sys
 import os
 import matplotlib.pyplot as plt
 from os.path import join as opj
-from Link import Link
+from link import Link
 SCRIPT_DIR = os.path.dirname(__file__)
 print(SCRIPT_DIR)
 

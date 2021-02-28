@@ -53,7 +53,7 @@ def load_images_by_metal_key(metal_key):
 
 
 def set_gs_to_set():
-	from Game import Game, GameState
+	from game import Game, GameState
 	Game.switch_state(GameState.SETTINGS)
 
 

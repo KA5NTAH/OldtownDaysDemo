@@ -1,7 +1,7 @@
 import pygame
 import utils
 import sys
-from Link import Link
+from link import Link
 from ball import Ball
 
 
