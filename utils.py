@@ -52,11 +52,6 @@ def load_images_by_metal_key(metal_key):
 	return empty_img, filled_img
 
 
-def set_gs_to_set():
-	from game import Game, GameState
-	Game.switch_state(GameState.SETTINGS)
-
-
 if __name__ == "__main__":
 	rect = pygame.Rect(75, 0, 50, 50)
 	rect1 = pygame.Rect(0, 567, 200, 133)

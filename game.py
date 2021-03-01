@@ -16,9 +16,8 @@ class Game:
         self.menu = Menu()
         self.education = Education()
         self.state = GameState.MENU
-        # todo maybe it would be more suitable to use dict or getting that should update or drawn
+        # todo maybe it would be more suitable to use dict for getting object that should be updated or drawn
         self.state_object_mapping = {}
-        # todo create screen of our own
 
     def draw(self):
         if self.state == GameState.MENU:
