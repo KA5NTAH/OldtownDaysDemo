@@ -1,68 +1,60 @@
 import pygame
+from challenge_target import ChallengeTarget
+from collections import deque
+import numpy as np
 import sys
-from enum import Enum, auto
 
-size = (1000, 800)
-screen = pygame.display.set_mode(size)
-black = (0, 0, 0)
-green = (0, 255, 0)
-blue = (0, 0, 255)
+pygame.font.init()
 
 
-class Condition(Enum):
-    STANDARD_PLAY = auto()
-    CHALLENGE_WAITING = auto()
-    CHALLENGE = auto()
+GOLD = (255, 215, 0)
 
 
-clock = pygame.time.Clock()
-curr_state = Condition.CHALLENGE_WAITING
-time_to_accept_challenge = 1 * 1000
-challenge_time = 1 * 1000
-challenge_line_length = 900
-waiting_line_length = 900
-time_spent_in_challenge = 0
-time_spent_in_waiting = 0
-old_space = pygame.key.get_pressed()[pygame.K_SPACE]
+class Challenge:
+    def __init__(self, target_list):
+        self.targets = target_list
+        self.target_number = len(self.targets)
+        self.ixs_permutations = np.random.permutation(self.target_number)
+        self.ixs_dict = dict(zip(self.ixs_permutations[::-1], np.arange(self.target_number) + 1))
+        self.challenge_order = deque(self.ixs_permutations)
+        self.font = pygame.font.SysFont('Comic Sans MS', 30)
+        self.curr_ind = self.challenge_order.pop()
 
-while True:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            sys.exit()
-    # ========================= mouse handler
+    def draw(self, screen):
+        for i in range(self.target_number):
+            if i in self.challenge_order or i == self.curr_ind:
+                text_number = f'{self.ixs_dict[i]}'
+                # todo number should be part of challenge target
+                text_surface = self.font.render(text_number, False, (153, 0, 0))
+                self.targets[i].draw(screen)
+                screen.blit(text_surface, (self.targets[i].cx, self.targets[i].cy))
 
-    screen.fill(black)
-    # update
-    if curr_state == Condition.STANDARD_PLAY:
-        time_spent_in_challenge = 0
-        time_spent_in_waiting = 0
-    if curr_state == Condition.CHALLENGE_WAITING:
-        time_spent_in_challenge = 0
-        time_spent_in_waiting += clock.tick()
-        if time_spent_in_waiting >= time_to_accept_challenge:
-            curr_state = Condition.STANDARD_PLAY
-        curr_space = pygame.key.get_pressed()[pygame.K_SPACE]
-        if curr_space and not old_space:
-            old_space = curr_space
-            curr_state = Condition.CHALLENGE
-        old_space = curr_space
-    if curr_state == Condition.CHALLENGE:
-        time_spent_in_waiting = 0
-        time_spent_in_challenge += clock.tick()
-        if time_spent_in_challenge >= challenge_time:
-            curr_state = Condition.STANDARD_PLAY
+    def update(self):
+        for i in range(self.target_number):
+            self.targets[i].update()
+            if self.targets[i].can_be_activated() and i == self.curr_ind and self.challenge_order:
+                self.curr_ind = self.challenge_order.pop()
+        # todo check if deque is empty and return some state?
+        if not self.challenge_order:
+            print(f'CHALLENGE IS DONE')
 
-    # draw
-    if curr_state == Condition.STANDARD_PLAY:
-        screen.fill(green)
-    if curr_state == Condition.CHALLENGE_WAITING:
-        screen.fill(blue)
-        spent_length = waiting_line_length * (time_spent_in_waiting / time_to_accept_challenge)
-        line_len = waiting_line_length - spent_length
-        pygame.draw.line(screen, (255, 0, 0), (50, 400), (50 + int(line_len), 400), 5)
-    if curr_state == Condition.CHALLENGE:
-        spent_length = challenge_line_length * (time_spent_in_challenge / challenge_time)
-        line_len = challenge_line_length - spent_length
-        pygame.draw.line(screen, (255, 0, 0), (50, 400), (50 + int(line_len), 400), 5)
 
-    pygame.display.flip()
+if __name__ == '__main__':
+    screen = pygame.display.set_mode((1000, 800))
+    target = ChallengeTarget(5000, 150, 150, GOLD)
+    target1 = ChallengeTarget(5000, 600, 600, GOLD)
+    target2 = ChallengeTarget(5000, 600, 150, GOLD)
+    target3 = ChallengeTarget(5000, 400, 400, GOLD)
+    target4 = ChallengeTarget(5000, 150, 600, GOLD)
+    challenge = Challenge([target, target1, target2, target3, target4])
+    while True:
+        events = pygame.event.get()
+        for event in events:
+            if event.type == pygame.QUIT:
+                sys.exit()
+        screen.fill((255, 255, 255))
+        # update block
+        challenge.update()
+        # draw block
+        challenge.draw(screen)
+        pygame.display.flip()
