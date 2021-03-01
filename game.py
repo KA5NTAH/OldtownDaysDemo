@@ -18,19 +18,16 @@ class Game:
         self.state = GameState.MENU
         # todo maybe it would be more suitable to use dict for getting object that should be updated or drawn
         self.state_object_mapping = {}
+        # todo maybe it would be more suitable to use dict or getting that should update or drawn
+        self.state_object_mapping = {GameState.MENU: self.menu,
+                                     GameState.EDUCATION: self.education}
+        # todo create screen of our own
 
     def draw(self):
-        if self.state == GameState.MENU:
-            self.menu.draw(self.screen)
-        elif self.state == GameState.EDUCATION:
-            self.education.draw(self.screen)
+        self.state_object_mapping[self.state].draw(self.screen)
 
     def update(self):
-        state_to_switch = None
-        if self.state == GameState.MENU:
-            state_to_switch = self.menu.update()
-        elif self.state == GameState.EDUCATION:
-            state_to_switch = self.education.update()
+        state_to_switch = self.state_object_mapping[self.state].update()
         if state_to_switch is not None:
             self.state = state_to_switch
 
