@@ -46,4 +46,22 @@ def test_link():
 		pygame.display.flip()
 
 
-test_link()	
+# test_link()
+import math
+
+start_angle = math.pi / 2
+stop_angle = start_angle
+while 1:
+	for event in pygame.event.get():
+		if event.type == pygame.QUIT:
+			sys.exit()
+	screen.fill(black)
+	rect = pygame.Rect(150, 150, 250, 250)
+	stop_angle -= 0.001
+	stop_angle = max(stop_angle, -(2 * math.pi + start_angle))
+	if start_angle - stop_angle < 2 * math.pi:
+		pygame.draw.arc(screen, (255, 0, 0), rect, start_angle, stop_angle, width=5)
+		pygame.draw.arc(screen, (255, 0, 0), rect, start_angle, stop_angle, width=5)
+		pygame.draw.circle(screen, (0, 255, 0), (int(rect.left + rect.width / 2),
+												 int(rect.top + rect.height / 2)), int(rect.width / 2) - 5)
+	pygame.display.flip()
