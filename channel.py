@@ -2,204 +2,105 @@ import pygame
 import utils
 import sys
 from link import Link
-from ball import Ball
+from droplet import Droplet
+from game_constants import DROPLETS_DIR, DROPLET_WIDTH
+import os
+from game_enums.metals import Metals
+pygame.init()
 
 
+# todo add doc string
 class Channel:
-	def __init__(self, link_metal_key, boundaries, filling_rate=None):
-		self.rect = boundaries
-		self.balls = []
-		self.ball_cx = self._init_ball_cx()
-		# should be used only while init
-		self.link, self.link_place = self._init_link(link_metal_key, filling_rate)
-		# link_is_free means free to recieve ball
-		self.link_is_open = True
-		self.swap_thrd = 0.5
-		self.recieve_ball_thrd = 50
-		self.discarded_balls = 0
+	def __init__(self, link):
+		self._link = link
+		self._link_place = link.rect
+		self._droplets = []
+		self.intersection_threshold = 1
+		self.channel_rect = pygame.Rect(*self._link.rect)
+		self.channel_rect.top = 0
 
-		# ball fate consts
-		self.BALL_KEEP_MOVE = "move"
-		self.DISCARD_BALL = "discard"
-		self.FILL_LINK_WITH_BALL = "fill"
+	def create_and_set_ball(self, metal):
+		half_width = int(self.channel_rect.width / 2)
+		drop_x = self.channel_rect.left + half_width - int(DROPLET_WIDTH / 2)
+		drop_y = self.channel_rect.top
+		img = pygame.image.load(os.path.join(DROPLETS_DIR, f'{metal.name}.png'))
+		drop = Droplet(metal, 1, img, (drop_x, drop_y))
+		self._droplets.append(drop)
 
-	def _init_link(self, link_metal_key, filling_rate=None):
-		left, top, w, h, = self.rect
-		# resize img that link rectangle w fits channel w
-		# todo keep metal_keys as consts in some file
-		empty_img, filled_img = utils.load_images_by_metal_key(link_metal_key)
-		_, _, link_w, link_h = filled_img.get_rect()
-		scale = w / link_w
-		link_w *= scale
-		link_h *= scale
-		link_w, link_h = int(link_w), int(link_h)
-		filled_img = pygame.transform.scale(filled_img, (link_w, link_h))
-		empty_img = pygame.transform.scale(empty_img, (link_w, link_h))
+	def link_is_available(self):
+		return self._link is not None
 
-		# link should be at the bottom of the chanel (load link as the one method)
-		link_start_pos = (left, top + h - link_h)
-		link = Link(link_start_pos, empty_img, filled_img, link_metal_key)
-		if filling_rate is not None:
-			link.set_fill_rate(filling_rate)
-		link_place = pygame.Rect(*link_start_pos, link_w, link_h)
-		return link, link_place
-
-	def _init_ball_cx(self):
-		left, top, w, h = self.rect
-		cx = int(left + w / 2)
-		return cx
-
-	def set_ball(self, ball):
-		# count ball position
-		l, t, w, h = ball._rect  # todo write getter for ball rectangle
-		ball_top = self.rect.top
-		ball_left = int(self.ball_cx - w / 2)
-		ball.place_ball_at_pos((ball_left, ball_top))
-		self.balls += [ball]
-
-	def yield_link(self):
-		if self.link_is_open:
-			self.link_is_open = False
-			return self.link
-
-	def swap_manager(self, channel, link):
-		# swap is handled from reciever position
-		swapped = False
-		links_iou = utils.get_iou(link.rect, self.link_place)
-		if links_iou > self.swap_thrd and self.link_is_open:
-			give_away_link = self.yield_link()
-			channel.replace_link(give_away_link)
-			self.replace_link(link)
-			swapped = True
-		return swapped
-
-	def replace_link(self, link):
-		self.link = link
-		self.link.rect = self.link_place
-		self.link_is_open = True
-
-	# todo write logic
+	# todo reflect in the name that method counts ruined droplets
 	def update(self):
-		# move balls
-		# handle collisions
-		balls_ixs_to_keep = []
-		for b_ind, ball in enumerate(self.balls):
-			ball.fall()
-			fate = self.get_ball_fate(ball)
-			# get balls intersections
-			if fate == self.FILL_LINK_WITH_BALL:
-				self.link.fill()
-			elif fate == self.BALL_KEEP_MOVE:
-				balls_ixs_to_keep += [b_ind]
-			elif fate == self.DISCARD_BALL:
-				self.discarded_balls += 1
-		self.balls = [b for ind, b in enumerate(self.balls) if ind in balls_ixs_to_keep]
-
-	def get_ball_fate(self, ball):
-		# some kind of enumerate
-		# fate is either : KEEP_MOVING, DISCARD, FILL_LINK
-		intersection = utils.get_intersection(ball._rect, self.link.rect)
-		if intersection < self.recieve_ball_thrd:
-			return self.BALL_KEEP_MOVE
-		same_metal = self.link.check_metal_compatibility(ball)
-		if same_metal and self.link_is_open and not self.link.is_filled():
-			return self.FILL_LINK_WITH_BALL
-		return self.DISCARD_BALL
+		""" All droplets fall
+		Then if droplet is in the place where link should be there is three possible outcomes
+		1) There is link and droplet is of the same metal - success
+		2) There is link and droplet is of the different metal - droplet is ruined
+		3) There is no link - droplet is ruined
+		In either way that means droplet doesnt need to be updated anymore/
+		Amount of ruined droplets is counted"""
+		droplets_ixs_to_discard = []
+		ruined_droplets = 0
+		for index in range(len(self._droplets)):
+			self._droplets[index].fall()
+			intersection = utils.get_intersection(self._link_place, self._droplets[index].rect)
+			if intersection > self.intersection_threshold:
+				droplets_ixs_to_discard.append(index)
+				if self._link is None:
+					ruined_droplets += 1
+				else:
+					if self._link.metal == self._droplets[index].metal:
+						self._link.pour_metal()
+					else:
+						ruined_droplets += 1
+		self._droplets = [self._droplets[i] for i in range(len(self._droplets)) if i not in droplets_ixs_to_discard]
+		if self._link is not None:
+			self._link.update()
+		return ruined_droplets
 
 	def draw(self, screen):
-		for ball in self.balls:
-			ball.draw(screen)
-		self.link.draw(screen)
+		for drop in self._droplets:
+			drop.draw(screen)
+		if self._link is not None:
+			self._link.draw(screen)
 
-	def link_spot_is_touched(self, mouse_pos):
-		if not self.link_is_open:
-			return False
-		# i think this must be in utils
-		x, y = mouse_pos
-		left, top, w, h = self.link_place
-		return left <= x <= left + w and top <= y <= top + h
+	def yield_link(self):
+		link = self._link
+		self._link = None
+		return link
+
+	def set_link(self, link):
+		self._link = link
 
 
-if __name__ == "__main__":
-	import random as rd
-	size = (1000, 800)
+if __name__ == '__main__':
+	pygame.init()
+	from game_constants import LINKS_DIR
+	# empty , full, timer, position, time, metal
+	m = Metals.GOLD
+	gpath = os.path.join(LINKS_DIR, m.name)
+	empty = pygame.image.load(os.path.join(gpath, 'Empty.png'))
+	full = pygame.image.load(os.path.join(gpath, 'Full.png'))
+	timer = pygame.image.load(os.path.join(gpath, 'FullTimer.png'))
+	link = Link(empty, full, timer, (40, 533), 5000, Metals.GOLD)
+	p = Channel(link)
+	width, height = 1200, 680
+	black = (255, 255, 255)
+	size = (width, height)
 	screen = pygame.display.set_mode(size)
-	rect1 = pygame.Rect(100, 0, 200, 700)
-	rect2 = pygame.Rect(350, 0, 200, 700)
-	gold_channel = Channel(utils.GOLDEN_COLOR, rect1)
-	black_iron_channel = Channel(utils.BLACK_IRON_COLOR, rect2)
 
-	ball_speed = (0, 2)
-	ball = Ball(utils.GOLDEN_COLOR, ball_speed)
-	gold_channel.set_ball(ball)
-
-	SET_BALL = pygame.USEREVENT + 1
-	pygame.time.set_timer(SET_BALL, 1000)
-	channels = [gold_channel, black_iron_channel]
-	colors = [utils.GOLDEN_COLOR, utils.BLACK_IRON_COLOR]
-
-	old_button_state, _, _ = pygame.mouse.get_pressed()
-	controlled_link = None
-	robbed_channel_ind = None
+	ttl = 1500
+	clock = pygame.time.Clock()
 	while True:
-		for event in pygame.event.get():
+		events = pygame.event.get()
+		for event in events:
 			if event.type == pygame.QUIT:
 				sys.exit()
-			elif event.type == SET_BALL:
-				color = rd.choice(colors)
-				ball = Ball(color, ball_speed)
-				chan_ix = rd.randrange(len(channels))
-				channels[chan_ix].set_ball(ball)
-
-		# ================================================================= mouse handler
-		button, _, _ = pygame.mouse.get_pressed()
-		rel = pygame.mouse.get_rel()
-		if button and not old_button_state:
-			print(f'FIRST  PRESS')
-			pos = pygame.mouse.get_pos()
-			for c_ind, chanel in enumerate(channels):
-				if chanel.link_spot_is_touched(pos):
-					print("TOUCHED")
-					link = chanel.yield_link()
-					if link is not None:
-						print("CONTROLLED")
-						controlled_link = link
-						robbed_channel_ind = c_ind
-						break
-					else:
-						controlled_link = None
-
-		elif button and old_button_state:
-			if controlled_link is not None:
-				controlled_link.move((rel[0], 0))
-				# print(f'rel = {rel}')
-			pass
-		elif old_button_state and not button:
-			# release from button
-			# swap manager
-			print("RELEASE")
-			if controlled_link is not None:
-				for channel in channels:
-					swapped = channel.swap_manager(channels[robbed_channel_ind], controlled_link)
-					if swapped:
-						break
-				else:
-					channels[robbed_channel_ind].replace_link(controlled_link)
-
-			robbed_channel_ind = None
-			controlled_link = None
-		old_button_state = button
-		# ================================================================= mouse handler
-
-		discarded = 0
-		for channel in channels:
-			discarded += channel.discarded_balls
-		# print(f'DISCARDED = {discarded}')
-
-		screen.fill((255, 255, 255))
-		for channel in channels:
-			channel.update()
-			channel.draw(screen)
-		if controlled_link is not None:
-			controlled_link.draw(screen)
+		screen.fill(black)
+		ttl -= clock.tick()
+		if ttl < 0:
+			p.create_and_set_ball(Metals.GOLD)
+			ttl = 100
+		p.update()
+		p.draw(screen)
 		pygame.display.flip()

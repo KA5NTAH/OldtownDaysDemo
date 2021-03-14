@@ -23,18 +23,26 @@ class Link(RectangleResponsive, MouseResponsive, ExpiringObject):
 		self._filled_lvl = 0
 		self._height = h
 		super().__init__(pygame.Rect(*self._drawing_position, w, h), 0)
-		self.rect = self._addressing_rect
+		self._rect = self._addressing_rect
 		ExpiringObject.__init__(self, time)  # fixme there might be something wrong
 
 	@property
 	def stage(self):
 		return self._stage
 
+	@property
+	def rect(self):
+		return self._rect
+
+	@property
+	def metal(self):
+		return self._metal
+
 	def put_into_place(self):
-		self.rect = self._addressing_rect
+		self._rect = self._addressing_rect
 
 	def move(self, vector):
-		self.rect = self.rect.move(vector)
+		self._rect = self._rect.move(vector)
 
 	def draw(self, screen):
 		if self._stage == LinkStage.FILLING or self._stage == LinkStage.CHALLENGE_PROPOSAL:
@@ -54,10 +62,10 @@ class Link(RectangleResponsive, MouseResponsive, ExpiringObject):
 			* ----- D
 			"""
 			A = (0, 0)
-			B = (self.rect.width, surface_y)
+			B = (self._rect.width, surface_y)
 			C = (0, surface_y)
-			D = (self.rect.width, self._height)
-			start_pos = (self.rect.left, self.rect.top)
+			D = (self._rect.width, self._height)
+			start_pos = (self._rect.left, self._rect.top)
 			screen.blit(upper_part, start_pos, (*A, *B))
 			screen.blit(lower_part, (start_pos[0], start_pos[1] + surface_y), (*C, *D))
 
