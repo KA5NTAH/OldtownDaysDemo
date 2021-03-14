@@ -1,21 +1,21 @@
 from abc import ABC, abstractmethod
-from game_enums.target_pressing_state import TargetPressingState
+from game_enums.user_intention import UserIntention
 
 
 class ClickableTarget:
     def __init__(self):
         self._old_user_action = self._get_user_action()
 
-    def get_pressed_cond(self) -> TargetPressingState:
+    def get_pressed_cond(self) -> UserIntention:
         curr_user_action = self._get_user_action()
         if curr_user_action and not self._old_user_action:
-            return TargetPressingState.GOT_PRESSED
+            return UserIntention.SWITCH_ON
         elif curr_user_action and self._old_user_action:
-            return TargetPressingState.LONG_TIME_PRESSED
+            return UserIntention.KEEP_ON_STATE
         elif not curr_user_action and self._old_user_action:
-            return TargetPressingState.GOT_RELEASED
+            return UserIntention.SWITCH_OFF
         elif not curr_user_action and not self._old_user_action:
-            return TargetPressingState.NOT_PRESSED
+            return UserIntention.IGNORE
 
     def update_user_action(self):
         self._old_user_action = self._get_user_action()

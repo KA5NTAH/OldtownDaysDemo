@@ -1,5 +1,5 @@
 from clickable_target import ClickableTarget
-from game_enums.target_pressing_state import TargetPressingState
+from game_enums.user_intention import UserIntention
 import pygame
 
 
@@ -19,4 +19,4 @@ class ExpiringClickableTarget(ClickableTarget):
 
     def can_be_activated(self) -> bool:
         press_state = self.get_pressed_cond()
-        return press_state == TargetPressingState.GOT_PRESSED and self._is_mouse_inside()
+        return press_state == UserIntention.SWITCH_ON and self._is_mouse_inside()

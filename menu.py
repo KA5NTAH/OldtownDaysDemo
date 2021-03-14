@@ -9,6 +9,7 @@ SCRIPT_DIR = os.path.dirname(__file__)
 pygame.init()
 
 
+# todo rework with buttons
 class EnumFromZero(Enum):
     def __new__(cls, *args):
         value = len(cls.__members__)
