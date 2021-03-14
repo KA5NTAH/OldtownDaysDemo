@@ -7,9 +7,7 @@ from game_enums.user_intention import UserIntention
 from responsive_objects.slide import Slide
 from responsive_objects.achievement_button import AchievementButton
 from responsive_objects.mouse_responsive import MouseResponsive
-SCRIPT_DIR = os.path.dirname(__file__)
-ACHIEVEMENTS_DIR = os.path.join(SCRIPT_DIR, 'resourses', 'Achievements')
-pygame.init()
+from game_constants import ACHIEVEMENTS_DIR
 
 
 # todo add meshgrid for the small icons positions
@@ -97,6 +95,7 @@ class AchievementPanel(MouseResponsive, Slide):
 
 
 if __name__ == '__main__':
+    pygame.init()
     p = AchievementPanel(1200, 680)
     coord = p._buttons_drawing_positions
     width, height = 1200, 680
