@@ -2,7 +2,7 @@ import pygame
 from responsive_objects.responsive import ResponsiveObject
 
 
-class RectangleResponsive(ResponsiveObject):
+class CircleResponsive(ResponsiveObject):
     def __init__(self, cx, cy, radius, *args):
         """Implementation of ResponsiveObject which is addressed when user puts cursor inside
         addressing circle defined by its center position and radius"""

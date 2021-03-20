@@ -17,6 +17,7 @@ class AchievementPanel(MouseResponsive, Slide):
         # parameters for counting buttons drawing positions
         self._screen_w = screen_w
         self._screen_h = screen_h
+        # todo maybe set those as global constants in global_consts.py
         self._ach_w = 80
         self._ach_h = 80
         self._x_offset = 20
