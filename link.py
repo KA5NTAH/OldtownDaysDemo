@@ -11,7 +11,7 @@ pygame.init()
 
 class Link(RectangleResponsive, MouseResponsive, ExpiringObject):
 	""" Link main task is to keep track of its state """  # fixme
-	def __init__(self, empty_img, full_img, timer_img, position, time, metal):
+	def __init__(self, empty_img, full_img, timer_img, position, time, metal, mouse_key):
 		self._stage = LinkStage.FILLING
 		self._empty_img = empty_img
 		self._full_img = full_img
@@ -19,12 +19,20 @@ class Link(RectangleResponsive, MouseResponsive, ExpiringObject):
 		self._drawing_position = position
 		self._metal = metal
 		_, _, w, h = self._empty_img.get_rect()
-		self._filling_rate = 1  # fixme maybe it should be parameter of __init__
+		self._filling_rate = 10  # fixme maybe it should be parameter of __init__
 		self._filled_lvl = 0
 		self._height = h
-		super().__init__(pygame.Rect(*self._drawing_position, w, h), 0)
+		super().__init__(pygame.Rect(*self._drawing_position, w, h), mouse_key)
 		self._rect = self._addressing_rect
-		ExpiringObject.__init__(self, time)  # fixme there might be something wrong
+		ExpiringObject.__init__(self, time)
+
+	@property
+	def init_rect(self):
+		return self._addressing_rect
+
+	@init_rect.setter
+	def init_rect(self, newRect):
+		self._addressing_rect = newRect
 
 	@property
 	def stage(self):
@@ -34,11 +42,15 @@ class Link(RectangleResponsive, MouseResponsive, ExpiringObject):
 	def rect(self):
 		return self._rect
 
+	@rect.setter
+	def rect(self, newRect):
+		self._rect = newRect
+
 	@property
 	def metal(self):
 		return self._metal
 
-	def put_into_place(self):
+	def put_into_initial_place(self):
 		self._rect = self._addressing_rect
 
 	def move(self, vector):

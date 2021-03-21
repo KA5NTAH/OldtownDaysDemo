@@ -53,11 +53,5 @@ def load_images_by_metal_key(metal_key):
 
 
 if __name__ == "__main__":
-	rect = pygame.Rect(75, 0, 50, 50)
-	rect1 = pygame.Rect(0, 567, 200, 133)
-	print(get_intersection(rect, rect1))
-	for i in range(1000):
-		rect = rect.move(0, 1)
-		if get_intersection(rect, rect1) > 0:
-			print(rect)
+	pass
 

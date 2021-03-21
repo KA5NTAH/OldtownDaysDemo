@@ -8,7 +8,8 @@ BLEAK = (15, 15, 15)
 
 
 class ChallengeTarget(CircleResponsive, MouseResponsive):
-    def __init__(self, trace_image, idle_image, calling_image, cx, cy, radius, mouse_key): # todo idk rename or something
+    # todo idk rename or something
+    def __init__(self, trace_image, idle_image, calling_image, cx, cy, radius, mouse_key):
         self._trace_image = trace_image
         self._idle_image = idle_image
         self._calling_image = calling_image
@@ -32,17 +33,3 @@ class ChallengeTarget(CircleResponsive, MouseResponsive):
         screen.blit(self._calling_image, self._drawing_position)
 
 
-if __name__ == '__main__':
-    screen = pygame.display.set_mode((1000, 800))
-    target = ChallengeTarget(5000, 400, 500, GOLD)
-    while True:
-        events = pygame.event.get()
-        for event in events:
-            if event.type == pygame.QUIT:
-                sys.exit()
-        screen.fill((255, 255, 255))
-        # update block
-        target.update()
-        # draw block
-        target.draw(screen)
-        pygame.display.flip()

@@ -7,7 +7,7 @@ class ResponsiveObject(ABC):
     Responsive object keeps track of specific user's action directed at this class.
     That means class can read user action and understand if it was addressed or not.
     At every moment of time ResponsiveObject can tell if this action was done or not.
-    Given two consecutive user's action Object can identify user's intention:
+    Given two consecutive user's action Object can identify user's intention
     """
     def __init__(self, *args):
         self.last_directed_action = self._get_directed_action()
@@ -37,4 +37,4 @@ class ResponsiveObject(ABC):
 
     @abstractmethod
     def _is_addressed(self) -> bool:
-        """tells if whether user action is directed at this object or not"""
+        """tells if user's action is directed at this object or not"""

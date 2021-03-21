@@ -3,7 +3,7 @@ import utils
 import sys
 from link import Link
 from droplet import Droplet
-from game_constants import DROPLETS_DIR, DROPLET_WIDTH
+import game_constants
 import os
 from game_enums.metals import Metals
 pygame.init()
@@ -13,17 +13,25 @@ pygame.init()
 class Channel:
 	def __init__(self, link):
 		self._link = link
-		self._link_place = link.rect
+		self._link_place = pygame.Rect(*link.init_rect)  # todo rename
 		self._droplets = []
 		self.intersection_threshold = 1
 		self.channel_rect = pygame.Rect(*self._link.rect)
 		self.channel_rect.top = 0
 
+	@property
+	def link_init_place(self):
+		return self._link_place
+
+	def get_and_update_link_intention(self):
+		return self._link.get_user_intention_and_update_track()
+
 	def create_and_set_ball(self, metal):
 		half_width = int(self.channel_rect.width / 2)
-		drop_x = self.channel_rect.left + half_width - int(DROPLET_WIDTH / 2)
+		drop_x = self.channel_rect.left + half_width - int(game_constants.DROPLET_WIDTH / 2)
 		drop_y = self.channel_rect.top
-		img = pygame.image.load(os.path.join(DROPLETS_DIR, f'{metal.name}.png'))
+		# fixme image should be loaded in game constants and got corresponding dict {metal: image}
+		img = game_constants.DROPLETS_IMAGES[metal]
 		drop = Droplet(metal, 1, img, (drop_x, drop_y))
 		self._droplets.append(drop)
 
@@ -31,11 +39,11 @@ class Channel:
 		return self._link is not None
 
 	# todo reflect in the name that method counts ruined droplets
-	def update(self):
+	def update_and_return_fail_counts(self):
 		""" All droplets fall
 		Then if droplet is in the place where link should be there is three possible outcomes
-		1) There is link and droplet is of the same metal - success
-		2) There is link and droplet is of the different metal - droplet is ruined
+		1) There is link, and droplet is of the same metal - success
+		2) There is link, and droplet is of the different metal - droplet is ruined
 		3) There is no link - droplet is ruined
 		In either way that means droplet doesnt need to be updated anymore/
 		Amount of ruined droplets is counted"""
@@ -71,6 +79,9 @@ class Channel:
 
 	def set_link(self, link):
 		self._link = link
+		if self._link is not None:
+			self._link.rect = self._link_place
+			self._link.init_rect = self._link_place
 
 
 if __name__ == '__main__':
@@ -82,7 +93,7 @@ if __name__ == '__main__':
 	empty = pygame.image.load(os.path.join(gpath, 'Empty.png'))
 	full = pygame.image.load(os.path.join(gpath, 'Full.png'))
 	timer = pygame.image.load(os.path.join(gpath, 'FullTimer.png'))
-	link = Link(empty, full, timer, (40, 533), 5000, Metals.GOLD)
+	link = Link(empty, full, timer, (40, 533), 5000, Metals.GOLD, game_constants.MOUSE_KEY)
 	p = Channel(link)
 	width, height = 1200, 680
 	black = (255, 255, 255)
@@ -101,6 +112,6 @@ if __name__ == '__main__':
 		if ttl < 0:
 			p.create_and_set_ball(Metals.GOLD)
 			ttl = 100
-		p.update()
+		p.update_and_return_fail_counts()
 		p.draw(screen)
 		pygame.display.flip()
