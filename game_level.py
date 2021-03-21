@@ -10,6 +10,7 @@ from game_enums.lvl_stage import LvlStage
 from game_enums.coins_kinds import CoinsKinds
 from game_enums.user_intention import UserIntention
 from game_enums.metals import Metals
+from coin import Coin
 import pygame
 import numpy as np
 import random as rd
@@ -18,6 +19,7 @@ from collections import deque
 import sys
 
 
+# todo dont inherit from persistent object
 class GameLevel(MouseResponsive, Slide):
     def __init__(self, mouse_key, metals, droplets_queue, fails_limit, challenge_wait_time,
                  coins_frequency, drops_frequency, coins_prob_distribution):
@@ -106,9 +108,13 @@ class GameLevel(MouseResponsive, Slide):
 
         for channel_index in range(len(self._channels)):
             ruined = self._channels[channel_index].update_and_return_fail_counts()
+        for coin_index in range(len(self._coins)):
+            self._coins[coin_index].update_ttl()
 
     def draw(self, screen):
         if self._stage == LvlStage.USUAL_PLAY:
+            for coin in self._coins:
+                coin.draw(screen)
             for channel in self._channels:
                 channel.draw(screen)
         if self._controlled_link is not None:
@@ -134,8 +140,11 @@ class GameLevel(MouseResponsive, Slide):
         """
         coin_kind = np.random.choice([CoinsKinds.TARGARYEN_COIN,
                                       CoinsKinds.FAITH_COIN,
-                                      CoinsKinds.BLACKFYRE_COIN], self._coins_prob_distribution)
-        # todo generate random position, generate_coin, add coin to self._coins
+                                      CoinsKinds.BLACKFYRE_COIN], p=self._coins_prob_distribution)
+        x_position = rd.randrange(*game_constants.COINS_X_BOUNDARIES)
+        y_position = rd.randrange(*game_constants.COINS_Y_BOUNDARIES)
+        coin = Coin(coin_kind, x_position, y_position, game_constants.MOUSE_KEY, 3.5 * 1000)
+        self._coins.append(coin)
 
     def _set_drop_at_random_channel(self):
         index = rd.randrange(len(self._channels))
@@ -151,7 +160,7 @@ if __name__ == "__main__":
                     Metals.SILVER,
                     Metals.COPPER]
     droplets = deque(links_metals * 100)
-    Lvl = GameLevel(game_constants.MOUSE_KEY, links_metals, droplets, 5, 1000, 0, 2000, 0)
+    Lvl = GameLevel(game_constants.MOUSE_KEY, links_metals, droplets, 5, 1000, 3000, 2000, [0.6, 0.3, 0.1])
     Lvl.set_events()
     screen = pygame.display.set_mode((1280, 680))
     while True:

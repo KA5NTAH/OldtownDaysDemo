@@ -11,6 +11,10 @@ class AchievementTrackingValues(Enum):
     COMPLETED_LEVELS = auto()
     GIVEN_BRIBES = auto()
     TRAIL_OF_THE_SEVEN_CALLS = auto()
+    RUINED_DROPS = auto()
+    RUINED_CHALLENGES = auto()
+    MISSES_IN_CHALLENGE = auto()
+    PERFECT_CHALLENGES = auto()
     # TRIAL OF THE SEVEN ACHIEVEMENTS
     MOTHERS_MERCY = auto()
     CRONES_WISDOM = auto()

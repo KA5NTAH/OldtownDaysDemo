@@ -1,5 +1,6 @@
 import os
 from game_enums.metals import Metals
+from game_enums.coins_kinds import CoinsKinds
 import pygame
 import numpy as np
 
@@ -113,3 +114,18 @@ for metal in Metals:
     if not os.path.exists(droplet_path):
         continue
     DROPLETS_IMAGES[metal] = pygame.image.load(droplet_path)
+
+
+# Load coins images
+COINS_FOLDER = os.path.join(RESOURSES_DIR, "Coins")
+COINS_IMAGES = {}
+for coin_kind in CoinsKinds:
+    COINS_IMAGES[coin_kind] = pygame.image.load(os.path.join(COINS_FOLDER, f'{coin_kind.name}.png'))
+
+
+COINS_RADIUS = 35
+COINS_WIDTH = 70
+COINS_HEIGHT = 70
+COINS_EDGE_OFFSET = 100
+COINS_X_BOUNDARIES = (COINS_WIDTH + COINS_EDGE_OFFSET, SCREEN_WIDTH - COINS_EDGE_OFFSET)
+COINS_Y_BOUNDARIES = (COINS_HEIGHT + COINS_EDGE_OFFSET, links_y - COINS_EDGE_OFFSET)
