@@ -13,6 +13,7 @@ class AchievementCheckDict(dict):
     does association with given achievement name
     """
     def __call__(self, achievement_name):
+        """In order to avoid decorators like this: @AchievementCheckDict.register method __call__ was overridden"""
         def decorator(foo):
             self.__setitem__(achievement_name, foo)
             return foo
@@ -30,12 +31,11 @@ class AchievementManager(PersistentObject):
     def __init__(self, config_path):
         values_names = [v.name for v in AchievementTrackingValues]
         self._achievement_values_info = dict.fromkeys(values_names, 0)
-        self._achievement_progress_info = dict.fromkeys(list(AchievementsNames), False)
         # self._init_from_file()
         super().__init__(config_path)
 
     def update_tracking_value(self, value: AchievementTrackingValues, amount: int = 1):
-        self._achievement_values_info[value] += amount
+        self._achievement_values_info[value.name] += amount
 
     def dump_into_file(self):
         with open(self._config_path, 'w') as file:
@@ -48,14 +48,20 @@ class AchievementManager(PersistentObject):
             with open(self._config_path) as file:
                 self._achievement_values_info = json.load(file)
 
+    def get_achievements_completeness(self):
+        completeness = {}
+        for ach_name in AchievementsNames:
+            completeness[ach_name] = self.achievement_checker[ach_name](self)
+        return completeness
+
     # gold related
     @achievement_checker(AchievementsNames.I_WILL_KEEP_THAT)
     def _i_will_keep_that(self):
-        return self._achievement_values_info[AchievementTrackingValues.COLLECTED_GOLD] >= 1
+        return self._achievement_values_info[AchievementTrackingValues.COLLECTED_GOLD.name] >= 1
 
     @achievement_checker(AchievementsNames.MASTER_OF_COIN)
     def _master_of_coin(self):
-        return self._achievement_values_info[AchievementTrackingValues.COLLECTED_GOLD] >= 1000
+        return self._achievement_values_info[AchievementTrackingValues.COLLECTED_GOLD.name] >= 1000
 
     @achievement_checker(AchievementsNames.LORD_OF_CASTERLY_ROCK)
     def _lord_of_casterly_rock(self):
@@ -63,41 +69,41 @@ class AchievementManager(PersistentObject):
 
     @achievement_checker(AchievementsNames.IRON_BANK)
     def _iron_bank(self):
-        return self._achievement_values_info[AchievementTrackingValues.COLLECTED_GOLD] >= 1000000
+        return self._achievement_values_info[AchievementTrackingValues.COLLECTED_GOLD.name] >= 1000000
 
     # blackfyre gold related
     @achievement_checker(AchievementsNames.CONSOLATION_PRIZE)
     def _consolation_prize(self):
-        return self._achievement_values_info[AchievementTrackingValues.COLLECTED_BLACKFYRE_COINS] >= 1
+        return self._achievement_values_info[AchievementTrackingValues.COLLECTED_BLACKFYRE_COINS.name] >= 1
 
     @achievement_checker(AchievementsNames.BLACK_DRAGON_BANNERMAN)
     def _black_dragon_bannerman(self):
-        return self._achievement_values_info[AchievementTrackingValues.COLLECTED_BLACKFYRE_COINS] >= 50
+        return self._achievement_values_info[AchievementTrackingValues.COLLECTED_BLACKFYRE_COINS.name] >= 50
 
     @achievement_checker(AchievementsNames.THE_KING_WHO_BORE_THE_SWORD)
     def _the_king_who_bore_the_sword(self):
-        return self._achievement_values_info[AchievementTrackingValues.COLLECTED_BLACKFYRE_COINS] >= 100
+        return self._achievement_values_info[AchievementTrackingValues.COLLECTED_BLACKFYRE_COINS.name] >= 100
 
     # trial of the seven
     @achievement_checker(AchievementsNames.GODS_HAVE_MADE_THEIR_WILL_KNOWN)
     def _gods_have_made_their_will_known(self):
-        return self._achievement_values_info[AchievementTrackingValues.TRAIL_OF_THE_SEVEN_CALLS] >= 1
+        return self._achievement_values_info[AchievementTrackingValues.TRAIL_OF_THE_SEVEN_CALLS.name] >= 1
 
     # game progress
     @achievement_checker(AchievementsNames.FIRST_OF_HIS_NAME)
     def _first_of_his_name(self):
-        return self._achievement_values_info[AchievementTrackingValues.COMPLETED_LEVELS] >= 1
+        return self._achievement_values_info[AchievementTrackingValues.COMPLETED_LEVELS.name] >= 1
 
     # bribes
     @achievement_checker(AchievementsNames.MAN_WITHOUT_HONOR)
     def _man_without_honor(self):
-        return self._achievement_values_info[AchievementTrackingValues.GIVEN_BRIBES] >= 100
+        return self._achievement_values_info[AchievementTrackingValues.GIVEN_BRIBES.name] >= 100
 
     # miscellaneous
     @achievement_checker(AchievementsNames.BEGGAR_KING)
     def _beggar_king(self):
-        return self._achievement_values_info[AchievementTrackingValues.NEGATIVE_BALANCE] >= 0
+        return self._achievement_values_info[AchievementTrackingValues.NEGATIVE_BALANCE.name] >= 1
 
 
 a = AchievementManager("")
-print(a.achievement_checker)
+
