@@ -10,6 +10,7 @@ from game_enums.lvl_stage import LvlStage
 from game_enums.coins_kinds import CoinsKinds
 from game_enums.user_intention import UserIntention
 from game_enums.metals import Metals
+from game_enums.achievement_tracking_values import AchievementTrackingValues
 from coin import Coin
 import pygame
 import numpy as np
@@ -19,7 +20,7 @@ from collections import deque
 import sys
 
 
-# todo dont inherit from persistent object
+# todo dont inherit from slide?
 class GameLevel(MouseResponsive, Slide):
     def __init__(self, mouse_key, metals, droplets_queue, fails_limit, challenge_wait_time,
                  coins_frequency, drops_frequency, coins_prob_distribution):
@@ -49,28 +50,25 @@ class GameLevel(MouseResponsive, Slide):
         for event in pygame.event.get(game_constants.LVL_EVENTS_TYPES):
             if event.type == game_constants.GENERATE_COIN_EVENT.type:
                 self._generate_coin()
+                print(f'GENERATE COIN')
             elif event.type == game_constants.GENERATE_DROP_EVENT.type:
                 self._set_drop_at_random_channel()
             elif event.type == game_constants.RUINED_DROP_EVENT.type:
-                print(f"DROP WAS RUINED")
+                # todo add miss handler
+                """
+                When drop is ruined it should not be punished in one case:
+                when drop of certain metal falls through all links and link
+                of its metal is already filled
+                """
+                # print(f"DROP WAS RUINED")
             elif event.type == game_constants.LINK_IS_DONE_EVENT.type:
+                # todo add done link handler
                 print(f"LINK IS DONE")
 
     # todo write handle user action logic for usual play state in this method
-    def _handle_user_actions(self):
-        pass
-
-    def update(self, achievement_manager, currencies_manager):
-        # todo check length of this method if it turns out to be too big split this!
-        # todo write proper doc string
-        """Level update"""
-        # check for end game
-
-        # handle events
-        # todo define events that should be handled only by level (like coin, drop generate + something else maybe)
-        self._handle_events()
-
-        # handle user action wrt slide
+    # todo remove slide directed action
+    # todo add achievement manager interaction
+    def _handle_user_link_actions(self, achievement_manager, currencies_manager):
         slide_intention = self.get_user_intention_and_update_track()
         self._relative_movement = pygame.mouse.get_rel()  # update relative movement lvl
         # if there is no link Player might get one under control
@@ -96,8 +94,7 @@ class GameLevel(MouseResponsive, Slide):
                 When link is released there are two strategies:
                 1) Link is released in such place that it has iou with other link > threshold: In such case links are 
                 swapped
-                2) Link is released in place where it doesnt have iou > threshold with any other link: In such case link
-                is returned back
+                2) Otherwise link is returned back
                 """
                 for channel_num in range(len(self._channels)):
                     if channel_num == self._robbed_channel_index:
@@ -116,10 +113,44 @@ class GameLevel(MouseResponsive, Slide):
                     self._controlled_link = None
                     self._robbed_channel_index = None
 
+    def _handle_user_coin_actions(self, achievement_manager, currencies_manager):
+        """
+        register user's actions directed at coins
+        if coin is picked method tells about it to currencies_manager and achievement_manager
+        picked coins are discarded
+        """
+        indexes_to_keep = []
+        for coin_index in range(len(self._coins)):
+            coin_intention = self._coins[coin_index].get_user_intention_and_update_track()
+            if coin_intention == UserIntention.SWITCH_ON:
+                kind = self._coins[coin_index].coin_kind
+                if kind == CoinsKinds.BLACKFYRE_COIN:
+                    achievement_manager.update_tracking_value(AchievementTrackingValues.COLLECTED_BLACKFYRE_COINS)
+                else:
+                    currencies_manager.record_coin_pick(kind)
+                    if kind == CoinsKinds.TARGARYEN_COIN:
+                        achievement_manager.update_tracking_value(AchievementTrackingValues.COLLECTED_GOLD)
+                    if kind == CoinsKinds.FAITH_COIN:
+                        achievement_manager.update_tracking_value(AchievementTrackingValues.COLLECTED_FAITH_COINS)
+            else:
+                indexes_to_keep.append(coin_index)
+        self._coins = [c for (ind, c) in enumerate(self._coins) if ind in indexes_to_keep]
+
+    def update(self, achievement_manager, currencies_manager):
+        # todo write proper doc string
+        """Level update"""
+        # todo check for end game
+        # handle events
+        # todo define events that should be handled only by level (like coin, drop generate + something else maybe)
+        self._handle_events()
+        self._handle_user_link_actions(achievement_manager, currencies_manager)
+        self._handle_user_coin_actions(achievement_manager, currencies_manager)
         for channel_index in range(len(self._channels)):
             ruined = self._channels[channel_index].update_and_return_fail_counts()
         for coin_index in range(len(self._coins)):
             self._coins[coin_index].update_ttl()
+        # discard expired coins
+        # self._coins = [c for c in self._coins if c.is_still_alive()]
 
     def draw(self, screen):
         if self._stage == LvlStage.USUAL_PLAY:
@@ -143,7 +174,7 @@ class GameLevel(MouseResponsive, Slide):
         return channels
 
     def _generate_coin(self):
-        """generates coins based on probability distribution, which is = [p1, p2, p3] where:
+        """generates coins based on probability distribution = [p1, p2, p3] where:
          p1 - probability of targaryen coin
          p2 - probability of faith coin
          p3 - probability of blackfyre coin
@@ -173,6 +204,11 @@ if __name__ == "__main__":
     Lvl = GameLevel(game_constants.MOUSE_KEY, links_metals, droplets, 5, 1000, 3000, 2000, [0.6, 0.3, 0.1])
     Lvl.set_events()
     screen = pygame.display.set_mode((1280, 680))
+
+    from achievement_manager import AchievementManager
+    from persistent_objects.currencies_manager import CurrenciesManager
+    am = AchievementManager("am.json")
+    cm = CurrenciesManager("cm.json")
     while True:
         events = pygame.event.get((pygame.QUIT, ))
         for event in events:
@@ -180,7 +216,7 @@ if __name__ == "__main__":
                 sys.exit()
         screen.fill((255, 255, 255))
         # update block
-        Lvl.update(0, 0)
+        Lvl.update(am, cm)
         # draw block
         Lvl.draw(screen)
         pygame.display.flip()

@@ -19,7 +19,7 @@ LINKS_DIR = os.path.join(RESOURSES_DIR, 'Links')
 
 # GAME CONSTANTS
 MOUSE_KEY = 0
-LINKS_SWAP_THRD = 0.5
+LINKS_SWAP_THRD = 0.2
 
 # Events
 # fixme maybe events should be in special file

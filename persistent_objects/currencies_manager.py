@@ -39,6 +39,3 @@ class CurrenciesManager(PersistentObject):
             with open(self._config_path) as file:
                 self._currencies_info = json.load(file)
 
-
-path = os.path.join('C:\\Users\\ААА\\Desktop\\OldtownDays\\resourses\\configs', 'test.json')
-test = CurrenciesManager(path)

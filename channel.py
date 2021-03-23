@@ -38,7 +38,7 @@ class Channel:
 		drop_y = self.channel_rect.top
 		# fixme image should be loaded in game constants and got corresponding dict {metal: image}
 		img = game_constants.DROPLETS_IMAGES[metal]
-		drop = Droplet(metal, 1, img, (drop_x, drop_y))
+		drop = Droplet(metal, 2, img, (drop_x, drop_y))
 		self._droplets.append(drop)
 
 	def link_is_available(self):

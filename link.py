@@ -19,7 +19,7 @@ class Link(RectangleResponsive, MouseResponsive, ExpiringObject):
 		self._drawing_position = position
 		self._metal = metal
 		_, _, w, h = self._empty_img.get_rect()
-		self._filling_rate = 150  # fixme maybe it should be parameter of __init__
+		self._filling_rate = 10  # fixme maybe it should be parameter of __init__
 		self._filled_lvl = 0
 		self._height = h
 		self._event_posted = False

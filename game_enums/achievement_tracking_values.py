@@ -3,7 +3,7 @@ from enum import Enum, auto
 
 class AchievementTrackingValues(Enum):
     # COLLECTION ACHIEVEMENTS
-    COLLECTED_GOLD_COINS = auto()
+    COLLECTED_GOLD = auto()
     COLLECTED_FAITH_COINS = auto()
     COLLECTED_BLACKFYRE_COINS = auto()
     NEGATIVE_BALANCE = auto()
@@ -20,4 +20,3 @@ class AchievementTrackingValues(Enum):
     CRONES_WISDOM = auto()
     FATHERS_JUDGEMENT = auto()
     WARRIORS_COURAGE = auto()
-    COLLECTED_GOLD = auto()
