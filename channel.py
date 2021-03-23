@@ -6,6 +6,7 @@ from droplet import Droplet
 import game_constants
 import os
 from game_enums.metals import Metals
+import game_constants
 pygame.init()
 
 
@@ -13,19 +14,24 @@ pygame.init()
 class Channel:
 	def __init__(self, link):
 		self._link = link
-		self._link_place = pygame.Rect(*link.init_rect)  # todo rename
+		self._link_rect = pygame.Rect(*link.addressing_rect)  # todo rename
 		self._droplets = []
-		self.intersection_threshold = 1
-		self.channel_rect = pygame.Rect(*self._link.rect)
+		self.intersection_threshold = 1  # fixme should be defined in game constants
+		self.channel_rect = pygame.Rect(*self._link.addressing_rect)
 		self.channel_rect.top = 0
 
 	@property
-	def link_init_place(self):
-		return self._link_place
+	def link_rect(self):
+		return self._link_rect
+
+	@property
+	def link_stage(self):
+		return self._link.stage
 
 	def get_and_update_link_intention(self):
 		return self._link.get_user_intention_and_update_track()
 
+	# fixme pass speed of drop as argument or define it in game constant
 	def create_and_set_ball(self, metal):
 		half_width = int(self.channel_rect.width / 2)
 		drop_x = self.channel_rect.left + half_width - int(game_constants.DROPLET_WIDTH / 2)
@@ -39,6 +45,7 @@ class Channel:
 		return self._link is not None
 
 	# todo reflect in the name that method counts ruined droplets
+	# fixme mb sent events of ruined droplets rather than return count
 	def update_and_return_fail_counts(self):
 		""" All droplets fall
 		Then if droplet is in the place where link should be there is three possible outcomes
@@ -48,23 +55,22 @@ class Channel:
 		In either way that means droplet doesnt need to be updated anymore/
 		Amount of ruined droplets is counted"""
 		droplets_ixs_to_discard = []
-		ruined_droplets = 0
 		for index in range(len(self._droplets)):
 			self._droplets[index].fall()
-			intersection = utils.get_intersection(self._link_place, self._droplets[index].rect)
+			intersection = utils.get_intersection(self._link_rect, self._droplets[index].rect)
 			if intersection > self.intersection_threshold:
 				droplets_ixs_to_discard.append(index)
 				if self._link is None:
-					ruined_droplets += 1
+					pygame.event.post(game_constants.RUINED_DROP_EVENT)
 				else:
 					if self._link.metal == self._droplets[index].metal:
 						self._link.pour_metal()
 					else:
-						ruined_droplets += 1
+						pygame.event.post(game_constants.RUINED_DROP_EVENT)
+		# keep only ones that still move
 		self._droplets = [self._droplets[i] for i in range(len(self._droplets)) if i not in droplets_ixs_to_discard]
 		if self._link is not None:
 			self._link.update()
-		return ruined_droplets
 
 	def draw(self, screen):
 		for drop in self._droplets:
@@ -80,8 +86,7 @@ class Channel:
 	def set_link(self, link):
 		self._link = link
 		if self._link is not None:
-			self._link.rect = self._link_place
-			self._link.init_rect = self._link_place
+			self._link.addressing_rect = self._link_rect
 
 
 if __name__ == '__main__':

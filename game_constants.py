@@ -21,10 +21,16 @@ LINKS_DIR = os.path.join(RESOURSES_DIR, 'Links')
 MOUSE_KEY = 0
 LINKS_SWAP_THRD = 0.5
 
-# Events fixme maybe events should be in special file
-GENERATE_COIN_EVENT = pygame.USEREVENT + 1
-GENERATE_DROP_EVENT = pygame.USEREVENT + 2
-
+# Events
+# fixme maybe events should be in special file
+GENERATE_COIN_EVENT = pygame.event.Event(pygame.USEREVENT + 1)
+GENERATE_DROP_EVENT = pygame.event.Event(pygame.USEREVENT + 2)
+LINK_IS_DONE_EVENT = pygame.event.Event(pygame.USEREVENT + 3)
+RUINED_DROP_EVENT = pygame.event.Event(pygame.USEREVENT + 4)
+LVL_EVENTS_TYPES = (GENERATE_COIN_EVENT.type,
+                    GENERATE_DROP_EVENT.type,
+                    LINK_IS_DONE_EVENT.type,
+                    RUINED_DROP_EVENT.type)
 
 # Challenge
 CHALLENGE_TARGET_RADIUS = 30

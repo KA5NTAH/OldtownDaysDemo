@@ -6,7 +6,7 @@ from expiring_object import ExpiringObject
 from responsive_objects.mouse_responsive import MouseResponsive
 from responsive_objects.rectangle_responsive import RectangleResponsive
 import sys
-pygame.init()
+from game_constants import LINK_IS_DONE_EVENT
 
 
 class Link(RectangleResponsive, MouseResponsive, ExpiringObject):
@@ -19,42 +19,33 @@ class Link(RectangleResponsive, MouseResponsive, ExpiringObject):
 		self._drawing_position = position
 		self._metal = metal
 		_, _, w, h = self._empty_img.get_rect()
-		self._filling_rate = 10  # fixme maybe it should be parameter of __init__
+		self._filling_rate = 150  # fixme maybe it should be parameter of __init__
 		self._filled_lvl = 0
 		self._height = h
+		self._event_posted = False
 		super().__init__(pygame.Rect(*self._drawing_position, w, h), mouse_key)
-		self._rect = self._addressing_rect
 		ExpiringObject.__init__(self, time)
 
+	# todo keep only one rectangle (delete properties of other)
+	# todo add event generator + make sure that event will be sent only once
 	@property
-	def init_rect(self):
+	def addressing_rect(self):
 		return self._addressing_rect
 
-	@init_rect.setter
-	def init_rect(self, newRect):
+	@addressing_rect.setter
+	def addressing_rect(self, newRect):
 		self._addressing_rect = newRect
+
+	def move(self, vector):
+		self._addressing_rect = self._addressing_rect.move(vector)
 
 	@property
 	def stage(self):
 		return self._stage
 
 	@property
-	def rect(self):
-		return self._rect
-
-	@rect.setter
-	def rect(self, newRect):
-		self._rect = newRect
-
-	@property
 	def metal(self):
 		return self._metal
-
-	def put_into_initial_place(self):
-		self._rect = self._addressing_rect
-
-	def move(self, vector):
-		self._rect = self._rect.move(vector)
 
 	def draw(self, screen):
 		if self._stage == LinkStage.FILLING or self._stage == LinkStage.CHALLENGE_PROPOSAL:
@@ -74,10 +65,10 @@ class Link(RectangleResponsive, MouseResponsive, ExpiringObject):
 			* ----- D
 			"""
 			A = (0, 0)
-			B = (self._rect.width, surface_y)
+			B = (self._addressing_rect.width, surface_y)
 			C = (0, surface_y)
-			D = (self._rect.width, self._height)
-			start_pos = (self._rect.left, self._rect.top)
+			D = (self._addressing_rect.width, self._height)
+			start_pos = (self._addressing_rect.left, self._addressing_rect.top)
 			screen.blit(upper_part, start_pos, (*A, *B))
 			screen.blit(lower_part, (start_pos[0], start_pos[1] + surface_y), (*C, *D))
 
@@ -86,7 +77,8 @@ class Link(RectangleResponsive, MouseResponsive, ExpiringObject):
 
 	def update(self):
 		""" If Link is filled than it should go into challenge proposal stage
-		if it is in challenge proposal state then see if it is expired already"""
+		if it is in challenge proposal state then see if it is expired already
+		Once link is done, it should create corresponding event"""
 		if self._stage == LinkStage.FILLING:
 			if self._filled_lvl == self._height:
 				self._refresh_clock()
@@ -95,3 +87,7 @@ class Link(RectangleResponsive, MouseResponsive, ExpiringObject):
 			self.update_ttl()
 			if not self.is_still_alive():
 				self._stage = LinkStage.DONE
+		elif self._stage == LinkStage.DONE:
+			if not self._event_posted:
+				pygame.event.post(LINK_IS_DONE_EVENT)
+				self._event_posted = True

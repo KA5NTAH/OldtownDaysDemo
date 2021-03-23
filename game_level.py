@@ -42,8 +42,23 @@ class GameLevel(MouseResponsive, Slide):
 
     def set_events(self):
         print(self._drops_frequency)
-        pygame.time.set_timer(game_constants.GENERATE_DROP_EVENT, self._drops_frequency)
-        pygame.time.set_timer(game_constants.GENERATE_COIN_EVENT, self._coins_frequency)
+        pygame.time.set_timer(game_constants.GENERATE_DROP_EVENT.type, self._drops_frequency)
+        pygame.time.set_timer(game_constants.GENERATE_COIN_EVENT.type, self._coins_frequency)
+
+    def _handle_events(self):
+        for event in pygame.event.get(game_constants.LVL_EVENTS_TYPES):
+            if event.type == game_constants.GENERATE_COIN_EVENT.type:
+                self._generate_coin()
+            elif event.type == game_constants.GENERATE_DROP_EVENT.type:
+                self._set_drop_at_random_channel()
+            elif event.type == game_constants.RUINED_DROP_EVENT.type:
+                print(f"DROP WAS RUINED")
+            elif event.type == game_constants.LINK_IS_DONE_EVENT.type:
+                print(f"LINK IS DONE")
+
+    # todo write handle user action logic for usual play state in this method
+    def _handle_user_actions(self):
+        pass
 
     def update(self, achievement_manager, currencies_manager):
         # todo check length of this method if it turns out to be too big split this!
@@ -53,12 +68,7 @@ class GameLevel(MouseResponsive, Slide):
 
         # handle events
         # todo define events that should be handled only by level (like coin, drop generate + something else maybe)
-        for event in pygame.event.get():
-            if event.type == game_constants.GENERATE_COIN_EVENT:
-                self._generate_coin()
-            elif event.type == game_constants.GENERATE_DROP_EVENT:
-                print("GENERATE DROP")
-                self._set_drop_at_random_channel()
+        self._handle_events()
 
         # handle user action wrt slide
         slide_intention = self.get_user_intention_and_update_track()
@@ -92,7 +102,7 @@ class GameLevel(MouseResponsive, Slide):
                 for channel_num in range(len(self._channels)):
                     if channel_num == self._robbed_channel_index:
                         continue
-                    iou = utils.get_iou(self._channels[channel_num].link_init_place, self._controlled_link.rect)
+                    iou = utils.get_iou(self._channels[channel_num].link_rect, self._controlled_link.addressing_rect)
                     if iou >= game_constants.LINKS_SWAP_THRD:
                         swap_link = self._channels[channel_num].yield_link()
                         self._channels[channel_num].set_link(self._controlled_link)
