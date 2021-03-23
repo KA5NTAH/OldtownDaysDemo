@@ -13,11 +13,11 @@ class CurrenciesManager(PersistentObject):
         self._init_from_file()
 
     @property
-    def targ_coins(self):
+    def targ_coins_balance(self):
         return self._currencies_info[CoinsKinds.TARGARYEN_COIN.name]
 
     @property
-    def faith_coins(self):
+    def faith_coins_balance(self):
         return self._currencies_info[CoinsKinds.FAITH_COIN.name]
 
     def dump_into_file(self) -> None:
