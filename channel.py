@@ -6,6 +6,7 @@ from droplet import Droplet
 import game_constants
 import os
 from game_enums.metals import Metals
+from game_enums.link_stage import LinkStage
 import game_constants
 pygame.init()
 
@@ -76,6 +77,8 @@ class Channel:
 		self._droplets = [self._droplets[i] for i in range(len(self._droplets)) if i not in droplets_ixs_to_discard]
 		if self._link is not None:
 			self._link.update()
+			if self._link.stage == LinkStage.DONE:
+				self._link = None
 
 	def draw(self, screen):
 		for drop in self._droplets:

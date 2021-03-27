@@ -77,7 +77,10 @@ class GameLevel(MouseResponsive, Slide):
                     if not self._complete_links_dict[metal]:
                         self._fails_count += 1
                 elif event.type in game_constants.LINK_IS_DONE_EVENTS_TYPES:
+                    for c in self._channels:
+                        print(c._link)
                     self._complete_links_count += 1
+                    print(f'COMPLETED : {self._complete_links_count}')
                     metal = game_constants.EVENT_TYPE_METAL_DICT[event.type]
                     self._complete_links_dict[metal] = True
 
@@ -90,7 +93,8 @@ class GameLevel(MouseResponsive, Slide):
         for coin_ind in range(len(self._coins)):
             self._coins[coin_ind].refresh_clock()
         for channel_ind in range(len(self._channels)):
-            self._channels[channel_ind].refresh_link()
+            if self._channels[channel_ind].link_is_available():
+                self._channels[channel_ind].refresh_link()
 
     def _handle_user_link_actions(self, achievement_manager, currencies_manager):
         # if there is no link Player might get one under control
