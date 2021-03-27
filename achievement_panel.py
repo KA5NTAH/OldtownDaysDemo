@@ -7,7 +7,7 @@ from game_enums.user_intention import UserIntention
 from responsive_objects.slide import Slide
 from responsive_objects.achievement_button import AchievementButton
 from responsive_objects.mouse_responsive import MouseResponsive
-from game_constants import ACHIEVEMENTS_DIR
+from game_constants import ACHIEVEMENTS_IMAGES
 
 
 # todo add meshgrid for the small icons positions
@@ -27,7 +27,7 @@ class AchievementPanel(MouseResponsive, Slide):
         self._buttons_drawing_positions = self._get_drawing_positions()
         self._big_icon_active_pos = (200, 175)
         self._description_pos = (447, 175)
-        self._buttons = self._load_buttons()
+        self._buttons = self._init_buttons()
         self._ach_state = self._get_achievements_state(0)  # fixme dummy implementation without achievement manager
         self._spectating_button = -1
 
@@ -40,24 +40,13 @@ class AchievementPanel(MouseResponsive, Slide):
         coord = np.vstack((xx.flatten(), yy.flatten())).T
         return coord
 
-    def _load_buttons(self):
+    def _init_buttons(self):
         """returns list of buttons"""  # fixme kind of obvious do we even need this
         buttons = []
         for index, a in enumerate(AchievementsNames):
-            ach_dir = os.path.join(ACHIEVEMENTS_DIR, a.name)
-            if os.path.exists(ach_dir):
-                print(f'LOAD ACHIEVEMNT FROM {ach_dir}')
-                small_icon_locked = pygame.image.load(os.path.join(ach_dir, 'SmallIconGs.png'))
-                small_icon_unlocked = pygame.image.load(os.path.join(ach_dir, 'SmallIcon.png'))
-                big_icon_locked = pygame.image.load(os.path.join(ach_dir, 'BigIconGs.png'))
-                big_icon_unlocked = pygame.image.load(os.path.join(ach_dir, 'BigIcon.png'))
-                description = pygame.image.load(os.path.join(ach_dir, 'Description.png'))
+            if a in ACHIEVEMENTS_IMAGES.keys():
                 button = AchievementButton(a.name,
-                                           small_icon_locked,
-                                           small_icon_unlocked,
-                                           big_icon_locked,
-                                           big_icon_unlocked,
-                                           description,
+                                           *ACHIEVEMENTS_IMAGES[a],
                                            self._buttons_drawing_positions[index],
                                            self._big_icon_active_pos,
                                            self._description_pos,

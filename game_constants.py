@@ -1,6 +1,7 @@
 import os
 from game_enums.metals import Metals
 from game_enums.coins_kinds import CoinsKinds
+from game_enums.achievements_names import AchievementsNames
 import pygame
 import numpy as np
 
@@ -59,6 +60,22 @@ LVL_EVENTS_TYPES = (GENERATE_COIN_EVENT.type,
                     RUINED_DROP_EVENT.type) + LINK_IS_DONE_EVENTS_TYPES + NO_LINK_RUIN_TYPES
 
 # test link fill event
+
+ACHIEVEMENTS_IMAGES = {}
+for achievement in AchievementsNames:
+    ach_dir = os.path.join(ACHIEVEMENTS_DIR, achievement.name)
+    if os.path.exists(ach_dir):
+        print(f'LOAD ACHIEVEMNT FROM {ach_dir}')
+        small_icon_locked = pygame.image.load(os.path.join(ach_dir, 'SmallIconGs.png'))
+        small_icon_unlocked = pygame.image.load(os.path.join(ach_dir, 'SmallIcon.png'))
+        big_icon_locked = pygame.image.load(os.path.join(ach_dir, 'BigIconGs.png'))
+        big_icon_unlocked = pygame.image.load(os.path.join(ach_dir, 'BigIcon.png'))
+        description = pygame.image.load(os.path.join(ach_dir, 'Description.png'))
+        ACHIEVEMENTS_IMAGES[achievement] = [small_icon_locked,
+                                          small_icon_unlocked,
+                                          big_icon_locked,
+                                          big_icon_unlocked,
+                                          description]
 
 # Challenge
 CHALLENGE_TARGET_RADIUS = 30
@@ -142,7 +159,6 @@ LINKS_COORDINATES = {
 }
 
 
-# todo add droplets images load
 DROPLETS_IMAGES = {}
 for metal in Metals:
     droplet_path = os.path.join(DROPLETS_DIR, f'{metal.name}.png')

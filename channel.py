@@ -31,6 +31,9 @@ class Channel:
 	def link_metal(self):
 		return self._link.metal
 
+	def refresh_link(self):
+		self._link.refresh_clock()
+
 	def get_and_update_link_intention(self):
 		return self._link.get_user_intention_and_update_track()
 

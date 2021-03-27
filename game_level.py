@@ -23,8 +23,11 @@ import sys
 from typing import List
 
 
-# todo dont inherit from slide?
-# todo add challenge support
+# todo implement bonus
+# todo finish draw functions: draw fail/winning progress
+# todo add winner and loser options
+# todo add trial of the seven
+# todo add persistent inheritance
 class GameLevel(MouseResponsive, Slide):
     def __init__(self, mouse_key: int, metals: List[Metals], challenges: List[Challenge],
                  droplets_queue: deque, fails_limit: int, challenge_wait_time: int, coins_frequency: int,
@@ -78,8 +81,17 @@ class GameLevel(MouseResponsive, Slide):
                     metal = game_constants.EVENT_TYPE_METAL_DICT[event.type]
                     self._complete_links_dict[metal] = True
 
-    # todo write handle user action logic for usual play state in this method
-    # todo add achievement manager interaction
+    def _refresh_expiring_objects(self):
+        """
+        Update clock of expiring objects in order to not substract some period of time from their life time
+        For example when player returns to usual play after challenge time that he has spent in challenge
+        should not be counted as passed lifetime of coins
+        """
+        for coin_ind in range(len(self._coins)):
+            self._coins[coin_ind].refresh_clock()
+        for channel_ind in range(len(self._channels)):
+            self._channels[channel_ind].refresh_link()
+
     def _handle_user_link_actions(self, achievement_manager, currencies_manager):
         # if there is no link Player might get one under control
         if self._controlled_link is None:
@@ -162,10 +174,13 @@ class GameLevel(MouseResponsive, Slide):
     def update(self, achievement_manager, currencies_manager):
         # todo write proper doc string
         """Level update"""
-        # todo check for end game
         self._relative_movement = pygame.mouse.get_rel()  # update relative movement lvl
         self._handle_events()
         if self._stage == LvlStage.USUAL_PLAY:
+            if self._fails_count == self._fails_limit:
+                self._stage = LvlStage.LOSER_OPTIONS
+            if self._complete_links_count == self._links_count:
+                self._stage = LvlStage.WINNER_OPTIONS
             self._handle_user_link_actions(achievement_manager, currencies_manager)
             self._handle_user_coin_actions(achievement_manager, currencies_manager)
             for coin_index in range(len(self._coins)):
@@ -177,8 +192,8 @@ class GameLevel(MouseResponsive, Slide):
             if success is not None:
                 if success:
                     self._handle_successful_challenge()
-                # fixme maybe we need smooth return to usual play (like upd time counters)
                 print(f'BACK TO LEVEL with {success}')
+                self._refresh_expiring_objects()
                 self._stage = LvlStage.USUAL_PLAY
         elif self._stage == LvlStage.LOSER_OPTIONS:
             pass
@@ -200,6 +215,10 @@ class GameLevel(MouseResponsive, Slide):
                 self._controlled_link.draw(screen)
         elif self._stage == LvlStage.CHALLENGE:
             self._current_challenge.draw(screen)
+        elif self._stage == LvlStage.LOSER_OPTIONS:
+            screen.fill((255, 0, 0))
+        elif self._stage == LvlStage.WINNER_OPTIONS:
+            screen.fill((0, 255, 0))
 
     def _init_channels(self, metals, time):
         """initialize channels with links. Info about links is drawn from metals list and game constant.
@@ -252,7 +271,7 @@ if __name__ == "__main__":
     c3 = Challenge(ccord, Metals.GOLD, 10000, (255, 0, 0), 0)
     c4 = Challenge(ccord, Metals.GOLD, 10000, (255, 0, 0), 0)
     challenges = [c, c1, c2, c3, c4]
-    Lvl = GameLevel(game_constants.MOUSE_KEY, links_metals, challenges, droplets, 100, 1000, 3000, 2000, [0.6, 0.3, 0.1])
+    Lvl = GameLevel(game_constants.MOUSE_KEY, links_metals, challenges, droplets, 5, 1000, 3000, 2000, [0.6, 0.3, 0.1])
     Lvl.set_events()
     screen = pygame.display.set_mode((1280, 680))
 
