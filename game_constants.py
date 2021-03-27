@@ -15,29 +15,58 @@ LINK_HEIGHT = 114
 # RESOURSES CONST
 ACHIEVEMENTS_DIR = os.path.join(RESOURSES_DIR, 'Achievements')
 DROPLETS_DIR = os.path.join(RESOURSES_DIR, 'Droplets')
-LINKS_DIR = os.path.join(RESOURSES_DIR, 'Links')
 
 # GAME CONSTANTS
 MOUSE_KEY = 0
 LINKS_SWAP_THRD = 0.2
+DROPLET_LINK_INTERSECTION_THRD = 1
+
+USER_EVENT_NUM = 1
+
+
+def generate_event():
+    """returns new event keeping track of event num"""
+    global USER_EVENT_NUM
+    event = pygame.event.Event(pygame.USEREVENT + USER_EVENT_NUM)
+    USER_EVENT_NUM += 1
+    return event
+
 
 # Events
-# fixme maybe events should be in special file
-GENERATE_COIN_EVENT = pygame.event.Event(pygame.USEREVENT + 1)
-GENERATE_DROP_EVENT = pygame.event.Event(pygame.USEREVENT + 2)
-LINK_IS_DONE_EVENT = pygame.event.Event(pygame.USEREVENT + 3)
-RUINED_DROP_EVENT = pygame.event.Event(pygame.USEREVENT + 4)
+# fixme maybe events should be in special file I'll sleep on that
+GENERATE_COIN_EVENT = generate_event()
+GENERATE_DROP_EVENT = generate_event()
+RUINED_DROP_EVENT = generate_event()
+
+LINK_METAL_EVENT_DICT = {}
+for m in Metals:
+    LINK_METAL_EVENT_DICT[m] = generate_event()
+EVENT_TYPE_METAL_DICT = {}
+for metal, event in LINK_METAL_EVENT_DICT.items():
+    EVENT_TYPE_METAL_DICT[event.type] = metal
+LINK_IS_DONE_EVENTS_TYPES = tuple(t for t in EVENT_TYPE_METAL_DICT.keys())
+
+NO_LINK_RUIN_DICT = {}
+for m in Metals:
+    NO_LINK_RUIN_DICT[m] = generate_event()
+EVENT_TYPE_NO_LINK_RUIN_METAL_DICT = {}
+for metal, event in NO_LINK_RUIN_DICT.items():
+    EVENT_TYPE_NO_LINK_RUIN_METAL_DICT[event.type] = metal
+NO_LINK_RUIN_TYPES = tuple(t for t in EVENT_TYPE_NO_LINK_RUIN_METAL_DICT.keys())
+
 LVL_EVENTS_TYPES = (GENERATE_COIN_EVENT.type,
                     GENERATE_DROP_EVENT.type,
-                    LINK_IS_DONE_EVENT.type,
-                    RUINED_DROP_EVENT.type)
+                    RUINED_DROP_EVENT.type) + LINK_IS_DONE_EVENTS_TYPES + NO_LINK_RUIN_TYPES
+
+# test link fill event
 
 # Challenge
 CHALLENGE_TARGET_RADIUS = 30
 CHALLENGE_TIMER_LINE_WIDTH = 20
 CHALLENGE_FOLDER = os.path.join(RESOURSES_DIR, 'Challenge')
 CHALLENGE_IMAGES = {}
-""" expected challenge folder structure
+""" 
+expected challenge folder structure
 - metal_key
     background_image.png
     - 001 

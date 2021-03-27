@@ -7,7 +7,7 @@ class ExpiringObject:
         self._clock = pygame.time.Clock()
         self._ttl = self._life_time
 
-    def _refresh_clock(self):
+    def refresh_clock(self):
         self._clock.tick()
 
     def update_ttl(self) -> None:

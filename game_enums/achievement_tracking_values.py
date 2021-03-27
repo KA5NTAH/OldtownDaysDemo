@@ -9,13 +9,16 @@ class AchievementTrackingValues(Enum):
     NEGATIVE_BALANCE = auto()
     # GAME PROGRESS
     COMPLETED_LEVELS = auto()
+    # MISC
     GIVEN_BRIBES = auto()
-    TRAIL_OF_THE_SEVEN_CALLS = auto()
     RUINED_DROPS = auto()
+    # CHALLENGES
     RUINED_CHALLENGES = auto()
+    COMPLETED_CHALLENGES = auto()
     MISSES_IN_CHALLENGE = auto()
     PERFECT_CHALLENGES = auto()
     # TRIAL OF THE SEVEN ACHIEVEMENTS
+    TRAIL_OF_THE_SEVEN_CALLS = auto()
     MOTHERS_MERCY = auto()
     CRONES_WISDOM = auto()
     FATHERS_JUDGEMENT = auto()

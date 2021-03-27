@@ -9,8 +9,10 @@ from game_enums.bonuses import Bonuses
 from game_enums.lvl_stage import LvlStage
 from game_enums.coins_kinds import CoinsKinds
 from game_enums.user_intention import UserIntention
+from challenge import Challenge
 from game_enums.metals import Metals
 from game_enums.achievement_tracking_values import AchievementTrackingValues
+from game_enums.link_stage import LinkStage
 from coin import Coin
 import pygame
 import numpy as np
@@ -18,21 +20,28 @@ import random as rd
 import utils
 from collections import deque
 import sys
+from typing import List
 
 
 # todo dont inherit from slide?
+# todo add challenge support
 class GameLevel(MouseResponsive, Slide):
-    def __init__(self, mouse_key, metals, droplets_queue, fails_limit, challenge_wait_time,
-                 coins_frequency, drops_frequency, coins_prob_distribution):
+    def __init__(self, mouse_key: int, metals: List[Metals], challenges: List[Challenge],
+                 droplets_queue: deque, fails_limit: int, challenge_wait_time: int, coins_frequency: int,
+                 drops_frequency: int, coins_prob_distribution: List[float]):
         super().__init__(mouse_key)
         self._stage = LvlStage.USUAL_PLAY
         self._channels = self._init_channels(metals, challenge_wait_time)
+        self._metal_challenge_dict = dict(zip(metals, challenges))
+        self._current_challenge = None
         self._controlled_link = None
         # channel from which player get controlled link
         self._robbed_channel_index = None
         self._fails_limit = fails_limit
-        self._left_fails = self._fails_limit
-        self._filled_links = 0
+        self._fails_count = 0
+        self._links_count = len(metals)
+        self._complete_links_dict = dict.fromkeys(metals, False)
+        self._complete_links_count = 0
         # deque that represents metal order of droplets
         self._droplets_queue = droplets_queue
         self._coins_frequency = coins_frequency
@@ -48,29 +57,30 @@ class GameLevel(MouseResponsive, Slide):
 
     def _handle_events(self):
         for event in pygame.event.get(game_constants.LVL_EVENTS_TYPES):
-            if event.type == game_constants.GENERATE_COIN_EVENT.type:
-                self._generate_coin()
-                print(f'GENERATE COIN')
-            elif event.type == game_constants.GENERATE_DROP_EVENT.type:
-                self._set_drop_at_random_channel()
-            elif event.type == game_constants.RUINED_DROP_EVENT.type:
-                # todo add miss handler
-                """
-                When drop is ruined it should not be punished in one case:
-                when drop of certain metal falls through all links and link
-                of its metal is already filled
-                """
-                # print(f"DROP WAS RUINED")
-            elif event.type == game_constants.LINK_IS_DONE_EVENT.type:
-                # todo add done link handler
-                print(f"LINK IS DONE")
+            if self._stage == LvlStage.USUAL_PLAY:
+                if event.type == game_constants.GENERATE_COIN_EVENT.type:
+                    self._generate_coin()
+                elif event.type == game_constants.GENERATE_DROP_EVENT.type:
+                    self._set_drop_at_random_channel()
+                elif event.type == game_constants.RUINED_DROP_EVENT.type:
+                    self._fails_count += 1
+                    print(self._fails_count)
+                    if self._fails_count == self._fails_limit:
+                        self._controlled_link = None
+                        self._robbed_channel_index = None
+                        self._stage = LvlStage.LOSER_OPTIONS
+                elif event.type in game_constants.EVENT_TYPE_NO_LINK_RUIN_METAL_DICT:
+                    metal = game_constants.EVENT_TYPE_NO_LINK_RUIN_METAL_DICT[event.type]
+                    if not self._complete_links_dict[metal]:
+                        self._fails_count += 1
+                elif event.type in game_constants.LINK_IS_DONE_EVENTS_TYPES:
+                    self._complete_links_count += 1
+                    metal = game_constants.EVENT_TYPE_METAL_DICT[event.type]
+                    self._complete_links_dict[metal] = True
 
     # todo write handle user action logic for usual play state in this method
-    # todo remove slide directed action
     # todo add achievement manager interaction
     def _handle_user_link_actions(self, achievement_manager, currencies_manager):
-        slide_intention = self.get_user_intention_and_update_track()
-        self._relative_movement = pygame.mouse.get_rel()  # update relative movement lvl
         # if there is no link Player might get one under control
         if self._controlled_link is None:
             for channel_num in range(len(self._channels)):
@@ -79,17 +89,25 @@ class GameLevel(MouseResponsive, Slide):
                 # all links intentions must be updated during this loop
                 link_intention = self._channels[channel_num].get_and_update_link_intention()
                 if link_intention == UserIntention.SWITCH_ON:
-                    self._controlled_link = self._channels[channel_num].yield_link()
-                    self._robbed_channel_index = channel_num
+                    if self._channels[channel_num].link_stage == LinkStage.CHALLENGE_PROPOSAL:
+                        metal = self._channels[channel_num].link_metal
+                        print(f'CHALLENGE : {metal}')
+                        self._current_challenge = self._metal_challenge_dict[metal]
+                        self._current_challenge.refresh_clock()
+                        self._stage = LvlStage.CHALLENGE
+                    else:
+                        self._controlled_link = self._channels[channel_num].yield_link()
+                        self._robbed_channel_index = channel_num
         else:
             """
             If link is controlled then player is either:
             1) keeps moving link
             2) releases link
             """
-            if slide_intention == UserIntention.KEEP_ON_STATE:
+            ctrl_link_intention = self._controlled_link.get_user_intention_and_update_track()
+            if ctrl_link_intention == UserIntention.KEEP_ON_STATE:
                 self._controlled_link.move(self._relative_movement)
-            elif slide_intention == UserIntention.SWITCH_OFF:
+            elif ctrl_link_intention == UserIntention.SWITCH_OFF:
                 """
                 When link is released there are two strategies:
                 1) Link is released in such place that it has iou with other link > threshold: In such case links are 
@@ -109,6 +127,7 @@ class GameLevel(MouseResponsive, Slide):
                         self._robbed_channel_index = None
                         break
                 else:
+                    # return link back if there is no one to swap with
                     self._channels[self._robbed_channel_index].set_link(self._controlled_link)
                     self._controlled_link = None
                     self._robbed_channel_index = None
@@ -136,19 +155,38 @@ class GameLevel(MouseResponsive, Slide):
                 indexes_to_keep.append(coin_index)
         self._coins = [c for (ind, c) in enumerate(self._coins) if ind in indexes_to_keep]
 
+    def _handle_successful_challenge(self):
+        # todo implement
+        pass
+
     def update(self, achievement_manager, currencies_manager):
         # todo write proper doc string
         """Level update"""
         # todo check for end game
-        # handle events
-        # todo define events that should be handled only by level (like coin, drop generate + something else maybe)
+        self._relative_movement = pygame.mouse.get_rel()  # update relative movement lvl
         self._handle_events()
-        self._handle_user_link_actions(achievement_manager, currencies_manager)
-        self._handle_user_coin_actions(achievement_manager, currencies_manager)
-        for channel_index in range(len(self._channels)):
-            ruined = self._channels[channel_index].update_and_return_fail_counts()
-        for coin_index in range(len(self._coins)):
-            self._coins[coin_index].update_ttl()
+        if self._stage == LvlStage.USUAL_PLAY:
+            self._handle_user_link_actions(achievement_manager, currencies_manager)
+            self._handle_user_coin_actions(achievement_manager, currencies_manager)
+            for coin_index in range(len(self._coins)):
+                self._coins[coin_index].update_ttl()
+            for chan_index in range(len(self._channels)):
+                self._channels[chan_index].update()
+        elif self._stage == LvlStage.CHALLENGE:
+            success = self._current_challenge.update_and_return_result(achievement_manager)
+            if success is not None:
+                if success:
+                    self._handle_successful_challenge()
+                # fixme maybe we need smooth return to usual play (like upd time counters)
+                print(f'BACK TO LEVEL with {success}')
+                self._stage = LvlStage.USUAL_PLAY
+        elif self._stage == LvlStage.LOSER_OPTIONS:
+            pass
+        elif self._stage == LvlStage.WINNER_OPTIONS:
+            pass
+        elif self._stage == LvlStage.TRIAL_OF_THE_SEVEN:
+            pass
+
         # discard expired coins
         # self._coins = [c for c in self._coins if c.is_still_alive()]
 
@@ -158,8 +196,10 @@ class GameLevel(MouseResponsive, Slide):
                 coin.draw(screen)
             for channel in self._channels:
                 channel.draw(screen)
-        if self._controlled_link is not None:
-            self._controlled_link.draw(screen)
+            if self._controlled_link is not None:
+                self._controlled_link.draw(screen)
+        elif self._stage == LvlStage.CHALLENGE:
+            self._current_challenge.draw(screen)
 
     def _init_channels(self, metals, time):
         """initialize channels with links. Info about links is drawn from metals list and game constant.
@@ -201,7 +241,18 @@ if __name__ == "__main__":
                     Metals.SILVER,
                     Metals.COPPER]
     droplets = deque(links_metals * 100)
-    Lvl = GameLevel(game_constants.MOUSE_KEY, links_metals, droplets, 5, 1000, 3000, 2000, [0.6, 0.3, 0.1])
+    ccord = [[100, 100],
+             [500, 200],
+             [900, 100],
+             [1000, 500],
+             [100, 600]]
+    c = Challenge(ccord, Metals.GOLD, 10000, (255, 0, 0), 0)
+    c1 = Challenge(ccord, Metals.GOLD, 10000, (255, 0, 0), 0)
+    c2 = Challenge(ccord, Metals.GOLD, 10000, (255, 0, 0), 0)
+    c3 = Challenge(ccord, Metals.GOLD, 10000, (255, 0, 0), 0)
+    c4 = Challenge(ccord, Metals.GOLD, 10000, (255, 0, 0), 0)
+    challenges = [c, c1, c2, c3, c4]
+    Lvl = GameLevel(game_constants.MOUSE_KEY, links_metals, challenges, droplets, 100, 1000, 3000, 2000, [0.6, 0.3, 0.1])
     Lvl.set_events()
     screen = pygame.display.set_mode((1280, 680))
 
@@ -220,4 +271,5 @@ if __name__ == "__main__":
         # draw block
         Lvl.draw(screen)
         pygame.display.flip()
+
 

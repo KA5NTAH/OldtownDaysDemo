@@ -6,6 +6,8 @@ import game_constants
 from collections import deque
 from responsive_objects.slide import Slide
 from responsive_objects.mouse_responsive import MouseResponsive
+from achievement_manager import AchievementManager
+from game_enums.achievement_tracking_values import AchievementTrackingValues
 import random
 import numpy as np
 import sys
@@ -32,6 +34,7 @@ class Challenge(MouseResponsive, Slide, ExpiringObject):
         self._current_target_ind = 0
         self._targets_num = len(self._targets_coordinates)
         self._timer_color = timer_color
+        self._perfect = True
 
     def _init_targets(self):
         targets = []
@@ -41,7 +44,7 @@ class Challenge(MouseResponsive, Slide, ExpiringObject):
             targets.append(target)
         return targets
 
-    def _shuffle_targets(self):
+    def shuffle_targets(self):
         # shuffle indexes
         coordinates = self._targets_coordinates.copy()
         random.shuffle(coordinates)
@@ -63,25 +66,37 @@ class Challenge(MouseResponsive, Slide, ExpiringObject):
             else:
                 target.draw_idle(screen)
 
-    def update_and_return_result(self):
+    def _handle_miss(self, achievement_manager):
+        # reset progress and notify achievement manager
+        self._current_target_ind = 0
+        self._perfect = False
+        achievement_manager.update_tracking_value(AchievementTrackingValues.MISSES_IN_CHALLENGE)
+
+    def update_and_return_result(self, achievement_manager):
         # check if some target was pressed
         if self._current_target_ind == self._targets_num:
-            return True  # means success
+            # successful complete of challenge
+            if self._perfect:
+                achievement_manager.update_tracking_value(AchievementTrackingValues.PERFECT_CHALLENGES)
+            achievement_manager.update_tracking_value(AchievementTrackingValues.COMPLETED_CHALLENGES)
+            return True
         if not self.is_still_alive() and self._current_target_ind < self._targets_num:
+            achievement_manager.update_tracking_value(AchievementTrackingValues.RUINED_CHALLENGES)
             return False  # means fail
 
         slide_intention = self.get_user_intention_and_update_track()
-        for num, target in enumerate(self._targets):
-            user_action = target.get_user_intention_and_update_track()
-            if user_action == UserIntention.SWITCH_ON:
+        user_actions = [self._targets[i].get_user_intention_and_update_track() for i in range(len(self._targets))]
+        for num, action in enumerate(user_actions):
+            if action == UserIntention.SWITCH_ON:
                 if num == self._current_target_ind:
                     self._current_target_ind += 1
                 else:
-                    self._current_target_ind = 0  # reset all progress in case of failure
+                    self._handle_miss(achievement_manager)
                 break
         else:
+            # check slide click only if no challenge target was pressed
             if slide_intention == UserIntention.SWITCH_ON:
-                self._current_target_ind = 0
+                self._handle_miss(achievement_manager)
         self.update_ttl()
 
 
@@ -94,8 +109,9 @@ if __name__ == '__main__':
              [100, 600]]
     from game_enums.metals import Metals
     c = Challenge(ccord, Metals.GOLD, 10000, (255, 0, 0), 0)
-    c._shuffle_targets()
+    c.shuffle_targets()
     screen = pygame.display.set_mode((1280, 680))
+    am = AchievementManager("")
     while True:
         events = pygame.event.get()
         for event in events:
@@ -103,7 +119,7 @@ if __name__ == '__main__':
                 sys.exit()
         screen.fill((255, 255, 255))
         # update block
-        c.update_and_return_result()
+        c.update_and_return_result(am)
         # draw block
         c.draw(screen)
         pygame.display.flip()

@@ -84,6 +84,8 @@ class AchievementManager(PersistentObject):
     def _the_king_who_bore_the_sword(self):
         return self._achievement_values_info[AchievementTrackingValues.COLLECTED_BLACKFYRE_COINS.name] >= 100
 
+    # challenges
+
     # trial of the seven
     @achievement_checker(AchievementsNames.GODS_HAVE_MADE_THEIR_WILL_KNOWN)
     def _gods_have_made_their_will_known(self):

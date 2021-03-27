@@ -7,6 +7,4 @@ class Metals(Enum):
     BLACK_IRON = auto()
     COPPER = auto()
     BRONZE = auto()
-    IRON = auto()
     SILVER = auto()
-    VALYRIAN_STEEL = auto()
