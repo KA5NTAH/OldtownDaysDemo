@@ -86,6 +86,7 @@ class Link(RectangleResponsive, MouseResponsive, ExpiringObject):
 		elif self._stage == LinkStage.CHALLENGE_PROPOSAL:
 			self.update_ttl()
 			if not self.is_still_alive():
+				# fixme useful flag?
 				if not self._event_posted:
 					pygame.event.post(LINK_METAL_EVENT_DICT[self._metal])
 					self._event_posted = True

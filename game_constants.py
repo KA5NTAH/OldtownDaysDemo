@@ -7,15 +7,21 @@ import numpy as np
 
 SCRIPT_DIR = os.path.dirname(__file__)
 RESOURSES_DIR = os.path.join(SCRIPT_DIR, 'resourses')
-SCREEN_WIDTH = 1280
+SCREEN_WIDTH = 1200
 SCREEN_HEIGHT = 680
 DROPLET_WIDTH = 30
 DROPLET_HEIGHT = 30
 LINK_WIDTH = 172
 LINK_HEIGHT = 114
+ACH_WIDTH = 80
+ACH_HEIGHT = 80
+LVL_ICON_WIDTH = 80
+LVL_ICON_HEIGHT = 80
 # RESOURSES CONST
 ACHIEVEMENTS_DIR = os.path.join(RESOURSES_DIR, 'Achievements')
 DROPLETS_DIR = os.path.join(RESOURSES_DIR, 'Droplets')
+LVL_BUTTONS_DIR = os.path.join(RESOURSES_DIR, 'LvlButtons')
+BACKGROUNDS_DIR = os.path.join(RESOURSES_DIR, 'Backgrounds')
 
 # GAME CONSTANTS
 MOUSE_KEY = 0
@@ -59,8 +65,11 @@ LVL_EVENTS_TYPES = (GENERATE_COIN_EVENT.type,
                     GENERATE_DROP_EVENT.type,
                     RUINED_DROP_EVENT.type) + LINK_IS_DONE_EVENTS_TYPES + NO_LINK_RUIN_TYPES
 
-# test link fill event
+# backgrounds images
+LVL_BACKGROUND = pygame.image.load(os.path.join(BACKGROUNDS_DIR, 'Level_background.png'))
 
+
+# test link fill event
 ACHIEVEMENTS_IMAGES = {}
 for achievement in AchievementsNames:
     ach_dir = os.path.join(ACHIEVEMENTS_DIR, achievement.name)
@@ -76,6 +85,18 @@ for achievement in AchievementsNames:
                                           big_icon_locked,
                                           big_icon_unlocked,
                                           description]
+
+LVL_BUTTONS_IMAGES = []
+locked_level_button = pygame.image.load(os.path.join(LVL_BUTTONS_DIR, 'LvlCloseIcon.png'))
+for folder_name in sorted(os.listdir(LVL_BUTTONS_DIR)):
+    folder_path = os.path.join(LVL_BUTTONS_DIR, folder_name)
+    if not os.path.isdir(folder_path):
+        continue
+    idle_image = pygame.image.load(os.path.join(folder_path, 'idle.png'))
+    selected_image = pygame.image.load(os.path.join(folder_path, 'selected.png'))
+    LVL_BUTTONS_IMAGES.append([locked_level_button, idle_image, selected_image])
+
+
 
 # Challenge
 CHALLENGE_TARGET_RADIUS = 30

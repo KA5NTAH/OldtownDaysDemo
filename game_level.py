@@ -23,6 +23,7 @@ import sys
 from typing import List
 
 
+
 # todo implement bonus
 # todo finish draw functions: draw fail/winning progress
 # todo add winner and loser options
@@ -211,6 +212,7 @@ class GameLevel(MouseResponsive, Slide):
 
     def draw(self, screen):
         if self._stage == LvlStage.USUAL_PLAY:
+            screen.blit(game_constants.LVL_BACKGROUND, (0, 0))
             for coin in self._coins:
                 coin.draw(screen)
             for channel in self._channels:
@@ -277,7 +279,7 @@ if __name__ == "__main__":
     challenges = [c, c1, c2, c3, c4]
     Lvl = GameLevel(game_constants.MOUSE_KEY, links_metals, challenges, droplets, 5, 1000, 3000, 2000, [0.6, 0.3, 0.1])
     Lvl.set_events()
-    screen = pygame.display.set_mode((1280, 680))
+    screen = pygame.display.set_mode((1200, 680))
 
     from achievement_manager import AchievementManager
     from persistent_objects.currencies_manager import CurrenciesManager

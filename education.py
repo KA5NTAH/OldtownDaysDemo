@@ -7,7 +7,7 @@ from collections import deque
 from link import Link
 from channel import Channel
 import utils
-from game_state import GameState
+from game_enums.game_state import GameState
 pygame.init()
 SCRIPT_DIR = os.path.dirname(__file__)
 

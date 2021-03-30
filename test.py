@@ -5,30 +5,24 @@ import sys
 from os.path import join as opj
 import pygame
 from responsive_objects.button import Button
+import shutil
+import cv2
 SCRIPT_DIR = os.path.dirname(__file__)
-pygame.init()
 
 
-idle = pygame.image.load(opj(SCRIPT_DIR, 'resourses', 'Menu', 'idle_test.png'))
-active = pygame.image.load(opj(SCRIPT_DIR, 'resourses', 'Menu', 'active_test.png'))
+def save_video_as_frames(video_path, frames_folder_path):
+    cap = cv2.VideoCapture(video_path)
+    img_num = 0
+    while cap.isOpened():
+        ret, frame = cap.read()
+        if not ret:
+            break
+        filename = opj(frames_folder_path, f'{img_num:06d}.png')
+        print(cv2.imwrite(filename, frame))
+        img_num += 1
+    cap.release()
 
 
-AchievementName = "LordOfCasterlyRock"
-icon = pygame.image.load(f"C:\\Users\\ААА\\Desktop\\Будни Староместа\\achievements\\{AchievementName}\\SmallGrayScale.png")
-description = pygame.image.load(f"C:\\Users\\ААА\\Desktop\\Будни Староместа\\achievements\\{AchievementName}\\Description.png")
-
-if __name__ == '__main__':
-    width, height = 1200, 680
-    black = (255, 255, 255)
-    size = (width, height)
-    screen = pygame.display.set_mode(size)
-    while True:
-        events = pygame.event.get()
-        for event in events:
-            if event.type == pygame.QUIT:
-                sys.exit()
-        screen.fill(black)
-        screen.blit(icon, (200, 175))
-        screen.blit(description, (447, 175))
-        pygame.display.flip()
-
+res_folder = "E:\\frames"
+video1 = opj("C:\\Users\\ААА\\Desktop\\OldtownDaysIdeas\\img_backgrounds", 'citadel.mp4')
+save_video_as_frames(video1, res_folder)

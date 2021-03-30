@@ -2,7 +2,7 @@ from enum import Enum, auto
 from menu import Menu
 from education import Education
 import pygame
-from game_state import GameState
+from game_enums.game_state import GameState
 import sys
 import os
 

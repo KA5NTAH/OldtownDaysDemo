@@ -7,24 +7,19 @@ from game_enums.user_intention import UserIntention
 from responsive_objects.slide import Slide
 from responsive_objects.achievement_button import AchievementButton
 from responsive_objects.mouse_responsive import MouseResponsive
-from game_constants import ACHIEVEMENTS_IMAGES
+from game_constants import ACHIEVEMENTS_IMAGES, SCREEN_WIDTH, SCREEN_HEIGHT, ACH_HEIGHT, ACH_WIDTH
 
 
 # todo add meshgrid for the small icons positions
 class AchievementPanel(MouseResponsive, Slide):
-    def __init__(self, screen_w, screen_h):
+    def __init__(self):
         super().__init__(0)
         # parameters for counting buttons drawing positions
-        self._screen_w = screen_w
-        self._screen_h = screen_h
-        # todo maybe set those as global constants in global_consts.py
-        self._ach_w = 80
-        self._ach_h = 80
         self._x_offset = 20
         self._y_offset = 20
         self._x_start = 50
         self._y_start = 50
-        self._buttons_drawing_positions = self._get_drawing_positions()
+        self._buttons_drawing_positions = self._get_drawing_positions()  # fixme do we need to keep this?
         self._big_icon_active_pos = (200, 175)
         self._description_pos = (447, 175)
         self._buttons = self._init_buttons()
@@ -32,10 +27,10 @@ class AchievementPanel(MouseResponsive, Slide):
         self._spectating_button = -1
 
     def _get_drawing_positions(self):
-        x_stop = self._screen_w - self._ach_w - self._x_offset
-        x = np.arange(self._x_start, x_stop + 1, self._ach_w + self._x_offset)
-        y_stop = self._screen_h - self._ach_h - self._y_offset
-        y = np.arange(self._y_start, y_stop + 1, self._ach_h + self._y_offset)
+        x_stop = SCREEN_WIDTH - ACH_WIDTH - self._x_offset
+        x = np.arange(self._x_start, x_stop + 1, ACH_WIDTH + self._x_offset)
+        y_stop = SCREEN_HEIGHT - ACH_HEIGHT - self._y_offset
+        y = np.arange(self._y_start, y_stop + 1, ACH_HEIGHT + self._y_offset)
         xx, yy = np.meshgrid(x, y)
         coord = np.vstack((xx.flatten(), yy.flatten())).T
         return coord
@@ -58,7 +53,7 @@ class AchievementPanel(MouseResponsive, Slide):
     def _get_achievements_state(self, achievement_manager):
         dummy_dict = {}
         for a in AchievementsNames:
-            dummy_dict[a.name] = True
+            dummy_dict[a.name] = False
         return dummy_dict
 
     def update(self):
@@ -86,12 +81,9 @@ class AchievementPanel(MouseResponsive, Slide):
 
 if __name__ == '__main__':
     pygame.init()
-    p = AchievementPanel(1200, 680)
-    coord = p._buttons_drawing_positions
-    width, height = 1200, 680
+    p = AchievementPanel()
     black = (255, 255, 255)
-    size = (width, height)
-    screen = pygame.display.set_mode(size)
+    screen = pygame.display.set_mode((1200, 680))
     while True:
         events = pygame.event.get()
         for event in events:
