@@ -23,7 +23,6 @@ import sys
 from typing import List
 
 
-
 # todo implement bonus
 # todo finish draw functions: draw fail/winning progress
 # todo add winner and loser options

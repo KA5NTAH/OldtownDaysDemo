@@ -2,6 +2,7 @@ import os
 from game_enums.metals import Metals
 from game_enums.coins_kinds import CoinsKinds
 from game_enums.achievements_names import AchievementsNames
+from game_enums.game_state import GameState
 import pygame
 import numpy as np
 
@@ -85,6 +86,18 @@ for achievement in AchievementsNames:
                                           big_icon_locked,
                                           big_icon_unlocked,
                                           description]
+
+
+MODE_SELECTION_BUTTONS_INFO = {}
+mode_buttons_folder = os.path.join(RESOURSES_DIR, 'Mode_selection')
+selection_positions = [[0, 0], [int(SCREEN_WIDTH / 2), 0]]
+for state, pos in zip([GameState.INFINITE_PLAY, GameState.LEVEL_CHOOSING], selection_positions):
+    folder = os.path.join(mode_buttons_folder, state.name)
+    idle_image = pygame.image.load(os.path.join(folder, 'idle.png'))
+    active_image = pygame.image.load(os.path.join(folder, 'selected.png'))
+    images = [idle_image, active_image]
+    MODE_SELECTION_BUTTONS_INFO[state] = {"images": images, "position": pos}
+
 
 LVL_BUTTONS_IMAGES = []
 locked_level_button = pygame.image.load(os.path.join(LVL_BUTTONS_DIR, 'LvlCloseIcon.png'))
