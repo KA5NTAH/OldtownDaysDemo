@@ -99,6 +99,17 @@ for state, pos in zip([GameState.INFINITE_PLAY, GameState.LEVEL_CHOOSING], selec
     MODE_SELECTION_BUTTONS_INFO[state] = {"images": images, "position": pos}
 
 
+FATHERS_JUDGEMENT_THRD = 0.5
+FATHERS_PUNISHMENT = 100  # amount of coins to be disposed of
+TRIAL_BONUSES_IMAGES = {}
+"""
+structure is:
+bonus_name:
+    - roll image
+    - with_description.png
+"""
+
+
 LVL_BUTTONS_IMAGES = []
 locked_level_button = pygame.image.load(os.path.join(LVL_BUTTONS_DIR, 'LvlCloseIcon.png'))
 for folder_name in sorted(os.listdir(LVL_BUTTONS_DIR)):
