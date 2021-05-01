@@ -12,6 +12,7 @@ from switch_state_command import SwitchStateCommand
 from set_achievement_command import SetAchievementCommand
 from achievement_manager import AchievementManager
 from persistent_objects.currencies_manager import CurrenciesManager
+from responsive_objects.keyboard_responsive import KeyboardResponsive
 
 
 # fixme completness should be taken only once player enters achievement window NOW it is taken on every frame
@@ -31,6 +32,7 @@ class Game:
         self._achievement_manager = AchievementManager(game_constants.ACHIEVEMENTS_INFO)
         self._currencies_manager = CurrenciesManager(game_constants.CURRENCIES_INFO)
         # keep track of escape button
+        self._roll_back_button = KeyboardResponsive(pygame.K_ESCAPE)
 
     def _process_buttons(self, buttons):
         for index in range(len(buttons)):
@@ -125,7 +127,11 @@ class Game:
         return []
 
     def update(self):
-        # detect back command
+        # detect escape command
+        go_back = self._roll_back_button.get_user_intention_and_update_track() == UserIntention.SWITCH_OFF
+        if go_back:
+            self._navigator.go_back()
+        # update corresponding to current state
         if self._navigator.current_state == GameState.MENU:
             self._process_buttons(self._menu_buttons)
         if self._navigator.current_state == GameState.GAME_MODE_CHOOSING:
@@ -134,6 +140,8 @@ class Game:
             self._process_buttons(self._level_buttons)
         if self._navigator.current_state == GameState.ACHIEVEMENTS:
             self._process_achievements_buttons()
+        if self._navigator.current_state == GameState.EXIT:
+            sys.exit()
 
     def draw(self, screen):
         if self._navigator.current_state == GameState.MENU:

@@ -10,3 +10,6 @@ class KeyboardResponsive(ResponsiveObject):
 
     def _get_user_action(self) -> bool:
         return pygame.key.get_pressed()[self._kb_key]
+
+    def _is_addressed(self):
+        return True
