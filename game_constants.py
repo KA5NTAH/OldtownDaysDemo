@@ -71,6 +71,33 @@ LVL_EVENTS_TYPES = (GENERATE_COIN_EVENT.type,
 LVL_BACKGROUND = pygame.image.load(os.path.join(BACKGROUNDS_DIR, 'Level_background.png'))
 
 
+"""
+add images for menu buttons in dict
+dict should have following structure
+{state: images, pos}
+"""
+MENU_BACKGROUND = pygame.image.load(os.path.join(BACKGROUNDS_DIR, 'Menu_background.png'))
+MENU_BUTTONS_ORDER = [GameState.GAME_MODE_CHOOSING, GameState.EDUCATION, GameState.ACHIEVEMENTS, GameState.EXIT]
+MENU_BUTTONS_DIR = os.path.join(RESOURSES_DIR, "MenuButtons")
+MENU_BUTTONS_INFO = []
+MENU_BUTTON_H = 50
+MENU_BUTTON_W = 360
+MENU_BUTTON_X_OFFSET = 50
+MENU_BUTTON_Y_OFFSET = 50
+MENU_BUTTON_Y_GAP = 10
+buttons_x = np.empty(len(MENU_BUTTONS_ORDER))
+buttons_x.fill(MENU_BUTTON_X_OFFSET)
+buttons_y = np.arange(len(MENU_BUTTONS_ORDER)) * (MENU_BUTTON_H + MENU_BUTTON_Y_GAP) + MENU_BUTTON_Y_OFFSET
+MENU_BUTTONS_POSITIONS = np.vstack((buttons_x, buttons_y)).T
+print(f"MENU_BUTTONS_POSITIONS = {MENU_BUTTONS_POSITIONS}")
+for state, pos in zip(MENU_BUTTONS_ORDER, MENU_BUTTONS_POSITIONS):
+    folder = os.path.join(MENU_BUTTONS_DIR, state.name)
+    idle_image = pygame.image.load(os.path.join(folder, 'idle.png'))
+    addressing_image = pygame.image.load(os.path.join(folder, 'addressing.png'))
+    button_info = {"images": [idle_image, addressing_image], "position": pos, "state": state}
+    MENU_BUTTONS_INFO.append(button_info)
+
+
 # bonuses images
 BONUSES_DIR = os.path.join(RESOURSES_DIR, "Bonuses")
 BONUSES_IMAGES = {}
@@ -100,15 +127,16 @@ for achievement in AchievementsNames:
                                           description]
 
 
-MODE_SELECTION_BUTTONS_INFO = {}
+MODE_SELECTION_BACKGROUND = pygame.image.load(os.path.join(BACKGROUNDS_DIR, "Mode_choosing_background.png"))
+MODE_SELECTION_BUTTONS_INFO = []
 mode_buttons_folder = os.path.join(RESOURSES_DIR, 'Mode_selection')
-selection_positions = [[0, 0], [int(SCREEN_WIDTH / 2), 0]]
+selection_positions = [[60, 60], [660, 60]]
 for state, pos in zip([GameState.INFINITE_PLAY, GameState.LEVEL_CHOOSING], selection_positions):
     folder = os.path.join(mode_buttons_folder, state.name)
     idle_image = pygame.image.load(os.path.join(folder, 'idle.png'))
     active_image = pygame.image.load(os.path.join(folder, 'selected.png'))
     images = [idle_image, active_image]
-    MODE_SELECTION_BUTTONS_INFO[state] = {"images": images, "position": pos}
+    MODE_SELECTION_BUTTONS_INFO.append({"images": images, "position": pos, "state": state})
 
 
 FATHERS_JUDGEMENT_THRD = 0.5

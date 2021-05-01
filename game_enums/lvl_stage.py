@@ -1,6 +1,7 @@
 from enum import Enum, auto
 
 
+# todo delete later
 class LvlStage(Enum):
     USUAL_PLAY = auto()
     CHALLENGE = auto()

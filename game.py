@@ -1,77 +1,98 @@
 from enum import Enum, auto
-from education import Education
 import pygame
 from game_enums.game_state import GameState
-from state_switcher import StateSwitcher
-from level_panel import LevelPanel
-from achievement_panel import AchievementPanel
 from game_enums.bonuses import Bonuses
 from responsive_objects.button import Button
 import sys
 import os
 import game_constants
+from navigator import Navigator
+from game_enums.user_intention import UserIntention
+from switch_state_command import SwitchStateCommand
 
 
 class Game:
     def __init__(self):
         self._screen = pygame.display.set_mode((game_constants.SCREEN_WIDTH, game_constants.SCREEN_HEIGHT))
         self._state = GameState.GAME_MODE_CHOOSING
-        self._menu = self._init_menu()
-        self._game_mode_selector = self._init_game_mode_selector()
-        self._education = self._init_education()
-        self._level_panel = LevelPanel()
-        self._levels = self._init_levels()
-        self._selected_level_ind = None
-        self._achievement_panel = AchievementPanel()
+        self._navigator = Navigator()
+        self._menu_bg = game_constants.MENU_BACKGROUND
+        self._mode_choosing_bg = game_constants.MODE_SELECTION_BACKGROUND
+        self._menu_buttons = self._init_menu_buttons()
+        self._game_choosing_buttons = self._init_game_choosing_buttons()
+        self._level_buttons = self._init_level_buttons()
 
-    def _init_menu(self):
-        buttons = []
-        states = []
-        menu = StateSwitcher(buttons, states)
-        return menu
+    def _process_buttons(self, buttons):
+        for index in range(len(buttons)):
+            user_intention = buttons[index].get_user_intention_and_update_track()
+            if user_intention == UserIntention.SWITCH_OFF:
+                buttons[index].click()
 
-    def _init_game_mode_selector(self):
-        buttons = []
-        states = []
-        for state, button_info in game_constants.MODE_SELECTION_BUTTONS_INFO.items():
-            states.append(state)
-            button = Button(*button_info["images"], button_info["position"], game_constants.MOUSE_KEY)
-            buttons.append(button)
-        game_mode_selector = StateSwitcher(buttons, states)
-        return game_mode_selector
+    def _draw_buttons(self, buttons, screen):
+        for b in buttons:
+            b.draw(screen)
 
-    def _init_education(self):
-        return 1
+    def _init_achievement_buttons(self):
+        return [], []
+
+    # approved
+    def _init_menu_buttons(self):
+        menu_buttons = []
+        for button_info in game_constants.MENU_BUTTONS_INFO:
+            # def __init__(self, idle_image, addressing_image, position, mouse_button, command: Command):
+            images = button_info["images"]
+            position = button_info["position"]
+            dst_state = button_info["state"]
+            command = SwitchStateCommand(self._navigator, dst_state)
+            button = Button(*images, position, game_constants.MOUSE_KEY, command)
+            menu_buttons.append(button)
+        return menu_buttons
+
+    # approved
+    def _init_game_choosing_buttons(self):
+        game_choosing_buttons = []
+        for button_info in game_constants.MODE_SELECTION_BUTTONS_INFO:
+            images = button_info["images"]
+            position = button_info["position"]
+            dst_state = button_info["state"]
+            command = SwitchStateCommand(self._navigator, dst_state)
+            button = Button(*images, position, game_constants.MOUSE_KEY, command)
+            game_choosing_buttons.append(button)
+        return game_choosing_buttons
+
+    def _init_achievement_buttons(self):
+        return []
+
+    def _init_level_buttons(self):
+        return []
 
     def _init_levels(self):
-        levels = []
-        return levels
+        return []
 
     def update(self):
-        if self._state == GameState.MENU:
-            dst_state = self._menu.update_and_returned_selected_state()
-            if dst_state is not None:
-                self._state = dst_state
-        elif self._state == GameState.GAME_MODE_CHOOSING:
-            dst_state = self._game_mode_selector.update_and_returned_selected_state()
-            if dst_state is not None:
-                self._state = dst_state
-        elif self._state == GameState.LEVEL_CHOOSING:
-            level_num = self._level_panel.update_and_return_selected_lvl()
-            if level_num is not None:
-                # fixme perhaps there progress should be nullified
-                self._selected_level_ind = level_num
-                self._state = GameState.PLAY
-        elif self._state == GameState.PLAY:
-            self._levels[self._selected_level_ind].update()
+        # detect back command
+        if self._navigator.current_state == GameState.MENU:
+            self._process_buttons(self._menu_buttons)
+        if self._navigator.current_state == GameState.GAME_MODE_CHOOSING:
+            self._process_buttons(self._game_choosing_buttons)
+        if self._navigator.current_state == GameState.LEVEL_CHOOSING:
+            self._process_buttons(self._level_buttons)
 
     def draw(self, screen):
-        if self._state == GameState.MENU:
-            self._menu.draw(screen)
-        elif self._state == GameState.GAME_MODE_CHOOSING:
-            self._game_mode_selector.draw(screen)
-        elif self._state == GameState.LEVEL_CHOOSING:
-            self._level_panel.draw(screen, [i > 0 for i in range(15)])
+        if self._navigator.current_state == GameState.MENU:
+            screen.blit(self._menu_bg, (0, 0))
+            self._draw_buttons(self._menu_buttons, screen)
+        if self._navigator.current_state == GameState.GAME_MODE_CHOOSING:
+            screen.blit(self._mode_choosing_bg, (0, 0))
+            self._draw_buttons(self._game_choosing_buttons, screen)
+        if self._navigator.current_state == GameState.LEVEL_CHOOSING:
+            # todo add locked/unlocked logic
+            self._draw_buttons(self._level_buttons, screen)
+        if self._navigator.current_state == GameState.PLAY:
+            pass
+        if self._navigator.current_state == GameState.ACHIEVEMENT_VIEW:
+            # todo draw achievement
+            pass
 
     def run(self):
         while True:

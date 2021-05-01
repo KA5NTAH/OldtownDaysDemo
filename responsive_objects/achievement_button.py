@@ -3,7 +3,7 @@ from responsive_objects.mouse_responsive import MouseResponsive
 from game_enums.user_intention import UserIntention
 import pygame
 
-
+# todo delete there is no more need of this
 class AchievementButton(RectangleResponsive, MouseResponsive):
     """
     Achievement button represents information about achievement While icon is idle its color can tell whether it is

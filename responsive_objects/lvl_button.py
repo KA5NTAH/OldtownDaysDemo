@@ -4,7 +4,7 @@ from responsive_objects.mouse_responsive import MouseResponsive
 import pygame
 
 
-# fixme maybe draw should accept locked as parameter
+# todo delete
 class LvlButton(RectangleResponsive, MouseResponsive):
     """ Lvl Button is meant to lead to Level Play mode from level panel. Lvl button states are:
     1) Locked: locked image is drawn independent of user's actions

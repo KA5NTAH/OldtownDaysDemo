@@ -10,6 +10,7 @@ import utils
 from game_enums.game_state import GameState
 pygame.init()
 SCRIPT_DIR = os.path.dirname(__file__)
+# todo delete this
 
 
 class EducationState(Enum):

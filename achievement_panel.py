@@ -10,7 +10,7 @@ from responsive_objects.mouse_responsive import MouseResponsive
 from game_constants import ACHIEVEMENTS_IMAGES, SCREEN_WIDTH, SCREEN_HEIGHT, ACH_HEIGHT, ACH_WIDTH
 
 
-# todo add meshgrid for the small icons positions
+# todo delete
 class AchievementPanel(MouseResponsive, Slide):
     def __init__(self):
         super().__init__(0)

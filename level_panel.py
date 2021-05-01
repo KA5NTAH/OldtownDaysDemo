@@ -3,6 +3,7 @@ from game_constants import SCREEN_WIDTH, SCREEN_HEIGHT, LVL_BUTTONS_IMAGES, LVL_
 import pygame
 import numpy as np
 from game_enums.user_intention import UserIntention
+# todo delete there is no more need for it
 
 
 class LevelPanel:
@@ -46,20 +47,3 @@ class LevelPanel:
         for button, locked in zip(self._buttons, locked_states):
             button.draw(screen, locked)
 
-
-if __name__ == '__main__':
-    pygame.init()
-    p = LevelPanel()
-    black = (255, 255, 255)
-    screen = pygame.display.set_mode((1200, 680))
-    while True:
-        events = pygame.event.get()
-        for event in events:
-            if event.type == pygame.QUIT:
-                sys.exit()
-        screen.fill(black)
-        res = p.update_and_return_selected_lvl()
-        if res is not None:
-            print(res)
-        p.draw(screen, [i > 5 for i in range(15)])
-        pygame.display.flip()
