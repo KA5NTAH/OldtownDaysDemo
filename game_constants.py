@@ -24,6 +24,9 @@ ACHIEVEMENTS_DIR = os.path.join(RESOURSES_DIR, 'Achievements')
 DROPLETS_DIR = os.path.join(RESOURSES_DIR, 'Droplets')
 LVL_BUTTONS_DIR = os.path.join(RESOURSES_DIR, 'LvlButtons')
 BACKGROUNDS_DIR = os.path.join(RESOURSES_DIR, 'Backgrounds')
+PERSISTENT_INFO_DIR = os.path.join(SCRIPT_DIR, "persistent_info")
+ACHIEVEMENTS_INFO = os.path.join(PERSISTENT_INFO_DIR, "achievement_info.json")
+CURRENCIES_INFO = os.path.join(PERSISTENT_INFO_DIR, "currencies_info.json")
 
 # GAME CONSTANTS
 MOUSE_KEY = 0
@@ -109,7 +112,20 @@ for bonus in Bonuses:
     BONUSES_IMAGES[bonus] = img_dict
 
 
-# test link fill event
+ACHIEVEMENT_ICON_POS = (200, 175)
+ACHIEVEMENT_DESCRIPTION_POS = (447, 175)
+ACHIEVEMENT_X_START = 50
+ACHIEVEMENT_Y_START = 50
+ACHIEVEMENT_X_GAP = 20
+ACHIEVEMENT_Y_GAP = 20
+ACHIEVEMENT_X_STOP = SCREEN_WIDTH - ACH_WIDTH - ACHIEVEMENT_X_GAP
+ACHIEVEMENT_Y_STOP = SCREEN_HEIGHT - ACH_HEIGHT - ACHIEVEMENT_Y_GAP
+x = np.arange(ACHIEVEMENT_X_START, ACHIEVEMENT_X_STOP + 1, ACH_WIDTH + ACHIEVEMENT_X_GAP)
+y = np.arange(ACHIEVEMENT_Y_START, ACHIEVEMENT_Y_STOP + 1, ACH_HEIGHT + ACHIEVEMENT_Y_GAP)
+xx, yy = np.meshgrid(x, y)
+ACHIEVEMENT_POSITIONS = np.vstack((xx.flatten(), yy.flatten())).T
+
+
 ACHIEVEMENTS_IMAGES = {}
 for achievement in AchievementsNames:
     ach_dir = os.path.join(ACHIEVEMENTS_DIR, achievement.name)

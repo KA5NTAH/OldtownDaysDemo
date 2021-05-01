@@ -13,6 +13,14 @@ class Navigator:
     def current_state(self):
         return self._current_state
 
+    @property
+    def displayed_achievement(self):
+        return self._displayed_achievement
+
+    @property
+    def played_level(self):
+        return self._played_level
+
     def switch_to_state(self, dst_state):
         self._state_history.append(self._current_state)
         self._current_state = dst_state

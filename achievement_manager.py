@@ -31,8 +31,8 @@ class AchievementManager(PersistentObject):
     def __init__(self, config_path):
         values_names = [v.name for v in AchievementTrackingValues]
         self._achievement_values_info = dict.fromkeys(values_names, 0)
-        # self._init_from_file()
         super().__init__(config_path)
+        self._init_from_file()
 
     def update_tracking_value(self, value: AchievementTrackingValues, amount: int = 1):
         self._achievement_values_info[value.name] += amount
@@ -84,8 +84,6 @@ class AchievementManager(PersistentObject):
     def _the_king_who_bore_the_sword(self):
         return self._achievement_values_info[AchievementTrackingValues.COLLECTED_BLACKFYRE_COINS.name] >= 100
 
-    # challenges
-
     # trial of the seven
     @achievement_checker(AchievementsNames.GODS_HAVE_MADE_THEIR_WILL_KNOWN)
     def _gods_have_made_their_will_known(self):
@@ -106,6 +104,15 @@ class AchievementManager(PersistentObject):
     def _beggar_king(self):
         return self._achievement_values_info[AchievementTrackingValues.NEGATIVE_BALANCE.name] >= 1
 
+    # challenges
+    @achievement_checker(AchievementsNames.SWORD_OF_THE_MORNING)
+    def _sword_of_the_morning(self):
+        return self._achievement_values_info[AchievementTrackingValues.PERFECT_CHALLENGES.name] >= 100
 
-a = AchievementManager("")
+    @achievement_checker(AchievementsNames.GROWING_STRONG)
+    def _growing_strong(self):
+        return self._achievement_values_info[AchievementTrackingValues.PERFECT_CHALLENGES.name] >= 1
 
+    @achievement_checker(AchievementsNames.WALK_OF_PUNISHMENT)
+    def _walk_of_punishment(self):
+        return self._achievement_values_info[AchievementTrackingValues.RUINED_CHALLENGES.name] >= 100

@@ -9,6 +9,12 @@ import game_constants
 from navigator import Navigator
 from game_enums.user_intention import UserIntention
 from switch_state_command import SwitchStateCommand
+from set_achievement_command import SetAchievementCommand
+from achievement_manager import AchievementManager
+from persistent_objects.currencies_manager import CurrenciesManager
+
+
+# fixme completness should be taken only once player enters achievement window NOW it is taken on every frame
 
 
 class Game:
@@ -20,7 +26,11 @@ class Game:
         self._mode_choosing_bg = game_constants.MODE_SELECTION_BACKGROUND
         self._menu_buttons = self._init_menu_buttons()
         self._game_choosing_buttons = self._init_game_choosing_buttons()
+        self._achievements_info = self._init_achievements_info()
         self._level_buttons = self._init_level_buttons()
+        self._achievement_manager = AchievementManager(game_constants.ACHIEVEMENTS_INFO)
+        self._currencies_manager = CurrenciesManager(game_constants.CURRENCIES_INFO)
+        # keep track of escape button
 
     def _process_buttons(self, buttons):
         for index in range(len(buttons)):
@@ -32,8 +42,56 @@ class Game:
         for b in buttons:
             b.draw(screen)
 
-    def _init_achievement_buttons(self):
-        return [], []
+    def _draw_achievement_buttons(self, screen):
+        completeness_map = self._achievement_manager.get_achievements_completeness()
+        for key in completeness_map.keys():
+            # fixme delete later needed because not all images are ready
+            if key not in self._achievements_info:
+                continue
+            if completeness_map[key]:
+                self._achievements_info[key]["unlocked_button"].draw(screen)
+            else:
+                self._achievements_info[key]["locked_button"].draw(screen)
+
+    def _display_achievement(self, screen, ach_name):
+        completeness_map = self._achievement_manager.get_achievements_completeness()
+        screen.blit(self._achievements_info[ach_name]["description"], game_constants.ACHIEVEMENT_DESCRIPTION_POS)
+        if completeness_map[self._navigator.displayed_achievement]:
+            screen.blit(self._achievements_info[ach_name]["unlocked_icon"], game_constants.ACHIEVEMENT_ICON_POS)
+        else:
+            screen.blit(self._achievements_info[ach_name]["locked_icon"], game_constants.ACHIEVEMENT_ICON_POS)
+
+    def _process_achievements_buttons(self):
+        completeness_map = self._achievement_manager.get_achievements_completeness()
+        for key in completeness_map.keys():
+            # fixme delete later needed because not all images are ready
+            if key not in self._achievements_info:
+                continue
+            if completeness_map[key]:
+                user_intention = self._achievements_info[key]["unlocked_button"].get_user_intention_and_update_track()
+                if user_intention == UserIntention.SWITCH_OFF:
+                    self._achievements_info[key]["unlocked_button"].click()
+            else:
+                user_intention = self._achievements_info[key]["locked_button"].get_user_intention_and_update_track()
+                if user_intention == UserIntention.SWITCH_OFF:
+                    self._achievements_info[key]["locked_button"].click()
+
+    def _init_achievements_info(self):
+        # split images into buttons
+        achievements_info = {}
+        for key, pos in zip(game_constants.ACHIEVEMENTS_IMAGES.keys(), game_constants.ACHIEVEMENT_POSITIONS):
+            small_icon_locked, small_icon_unlocked, \
+                               big_icon_locked, big_icon_unlocked, description = game_constants.ACHIEVEMENTS_IMAGES[key]
+            command = SetAchievementCommand(self._navigator, key)
+            locked_button = Button(small_icon_locked, small_icon_locked, pos, game_constants.MOUSE_KEY, command)
+            unlocked_button = Button(small_icon_unlocked, small_icon_unlocked, pos, game_constants.MOUSE_KEY, command)
+            achievement_info = {"locked_button": locked_button,
+                                "unlocked_button": unlocked_button,
+                                "locked_icon": big_icon_locked,
+                                "unlocked_icon": big_icon_unlocked,
+                                "description": description}
+            achievements_info[key] = achievement_info
+        return achievements_info
 
     # approved
     def _init_menu_buttons(self):
@@ -60,9 +118,6 @@ class Game:
             game_choosing_buttons.append(button)
         return game_choosing_buttons
 
-    def _init_achievement_buttons(self):
-        return []
-
     def _init_level_buttons(self):
         return []
 
@@ -77,6 +132,8 @@ class Game:
             self._process_buttons(self._game_choosing_buttons)
         if self._navigator.current_state == GameState.LEVEL_CHOOSING:
             self._process_buttons(self._level_buttons)
+        if self._navigator.current_state == GameState.ACHIEVEMENTS:
+            self._process_achievements_buttons()
 
     def draw(self, screen):
         if self._navigator.current_state == GameState.MENU:
@@ -86,13 +143,12 @@ class Game:
             screen.blit(self._mode_choosing_bg, (0, 0))
             self._draw_buttons(self._game_choosing_buttons, screen)
         if self._navigator.current_state == GameState.LEVEL_CHOOSING:
-            # todo add locked/unlocked logic
             self._draw_buttons(self._level_buttons, screen)
-        if self._navigator.current_state == GameState.PLAY:
-            pass
+        if self._navigator.current_state == GameState.ACHIEVEMENTS:
+            self._draw_achievement_buttons(screen)
         if self._navigator.current_state == GameState.ACHIEVEMENT_VIEW:
-            # todo draw achievement
-            pass
+            ach_name = self._navigator.displayed_achievement
+            self._display_achievement(screen, ach_name)
 
     def run(self):
         while True:
