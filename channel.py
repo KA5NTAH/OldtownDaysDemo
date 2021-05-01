@@ -43,8 +43,7 @@ class Channel:
 		half_width = int(self.channel_rect.width / 2)
 		drop_x = self.channel_rect.left + half_width - int(game_constants.DROPLET_WIDTH / 2)
 		drop_y = self.channel_rect.top
-		img = game_constants.DROPLETS_IMAGES[metal]
-		drop = Droplet(metal, 2, img, (drop_x, drop_y))
+		drop = Droplet(metal, 2, (drop_x, drop_y))
 		self._droplets.append(drop)
 
 	def link_is_available(self):

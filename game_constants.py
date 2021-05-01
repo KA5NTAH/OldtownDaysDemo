@@ -3,6 +3,7 @@ from game_enums.metals import Metals
 from game_enums.coins_kinds import CoinsKinds
 from game_enums.achievements_names import AchievementsNames
 from game_enums.game_state import GameState
+from game_enums.bonuses import Bonuses
 import pygame
 import numpy as np
 
@@ -68,6 +69,17 @@ LVL_EVENTS_TYPES = (GENERATE_COIN_EVENT.type,
 
 # backgrounds images
 LVL_BACKGROUND = pygame.image.load(os.path.join(BACKGROUNDS_DIR, 'Level_background.png'))
+
+
+# bonuses images
+BONUSES_DIR = os.path.join(RESOURSES_DIR, "Bonuses")
+BONUSES_IMAGES = {}
+for bonus in Bonuses:
+    folder = os.path.join(BONUSES_DIR, bonus.name)
+    idle_image = pygame.image.load(os.path.join(folder, 'idle.png'))
+    selected_image = pygame.image.load(os.path.join(folder, 'selected.png'))
+    img_dict = {'idle': idle_image, 'selected': selected_image}
+    BONUSES_IMAGES[bonus] = img_dict
 
 
 # test link fill event

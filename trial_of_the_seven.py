@@ -18,7 +18,7 @@ class TrialOfTheSeven(ExpiringObject):
             - returns to lvl panel
         """
         super().__init__(waiting_time)
-        self._time_per_god = 1000
+        self._time_per_god = 50
         self._current_god = rd.choice(list(Bonuses))
         self._showed_gods = 0
         self._result_is_generated = False
@@ -48,7 +48,7 @@ class TrialOfTheSeven(ExpiringObject):
                 if self._result_bonus == Bonuses.FATHER:
                     if level_progress >= game_constants.FATHERS_JUDGEMENT_THRD:
                         currencies_manager.spend_coins(CoinsKinds.FAITH_COIN, game_constants.FATHERS_PUNISHMENT)
-                        self._image_with_description = 0
+                        self._image_with_description = game_constants.BONUSES_IMAGES[self._result_bonus]['selected']
                     else:
                         self._image_with_description = 1
                 else:
@@ -64,14 +64,28 @@ class TrialOfTheSeven(ExpiringObject):
 
     def draw(self, screen):
         if self.is_still_alive():
-            god_image = 0  # todo in game_constants add dict with gods images
-            screen.blit(god_image)
+            god_image = game_constants.BONUSES_IMAGES[self._current_god]['idle']
+            screen.blit(god_image, (0, 0))
         elif self._result_is_generated:
-            # todo
-            screen.blit()
+            pass
 
     def run_trial(self, screen):
         result_bonus = rd.choice(list(Bonuses))
         user_returns_to_play_state = None
 
 
+if __name__ == "__main__":
+    import pygame
+    import sys
+    pygame.init()
+    p = TrialOfTheSeven(10 * 1000)
+    screen = pygame.display.set_mode((1200, 680))
+    while True:
+        events = pygame.event.get()
+        for event in events:
+            if event.type == pygame.QUIT:
+                sys.exit()
+        screen.fill((0, 0, 0))
+        p.update(0, 0)
+        p.draw(screen)
+        pygame.display.flip()

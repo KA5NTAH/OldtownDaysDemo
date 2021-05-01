@@ -1,16 +1,17 @@
 import pygame
 import sys
 import utils
+from flyweight_droplet import FlyWeightDroplet
+from flywght_droplet_factory import FlyweightDropletFactory
+from game_constants import DROPLET_WIDTH, DROPLET_HEIGHT
 
 
+# todo implement flyweight pattern
 class Droplet:
-    def __init__(self, metal, y_speed, img, position):
-        self._metal = metal
+    def __init__(self, metal, y_speed, position):
+        self._flyweight = FlyweightDropletFactory.get_flyweight(metal)
         self._y_speed = y_speed
-        self._img = img  # todo might be we could use some animation
-        # todo set constant just for now
-        _, _, w, h = img.get_rect()
-        self._rect = pygame.Rect(*position, w, h)
+        self._rect = pygame.Rect(*position, DROPLET_WIDTH, DROPLET_HEIGHT)
 
     @property
     def rect(self):
@@ -18,7 +19,7 @@ class Droplet:
 
     @property
     def metal(self):
-        return self._metal
+        return self._flyweight.metal
 
     @property
     def y_coord(self):
@@ -28,5 +29,5 @@ class Droplet:
         self._rect = self._rect.move((0, self._y_speed))
 
     def draw(self, screen):
-        screen.blit(self._img, (self._rect.left, self._rect.top))
+        self._flyweight.draw(screen, self._rect)
 

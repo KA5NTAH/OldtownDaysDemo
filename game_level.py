@@ -276,7 +276,7 @@ if __name__ == "__main__":
     c3 = Challenge(ccord, Metals.GOLD, 10000, (255, 0, 0), 0)
     c4 = Challenge(ccord, Metals.GOLD, 10000, (255, 0, 0), 0)
     challenges = [c, c1, c2, c3, c4]
-    Lvl = GameLevel(game_constants.MOUSE_KEY, links_metals, challenges, droplets, 5, 1000, 3000, 2000, [0.6, 0.3, 0.1])
+    Lvl = GameLevel(game_constants.MOUSE_KEY, links_metals, challenges, droplets, 1000, 100, 3000, 100, [0.6, 0.3, 0.1])
     Lvl.set_events()
     screen = pygame.display.set_mode((1200, 680))
 
