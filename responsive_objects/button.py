@@ -20,6 +20,10 @@ class Button(RectangleResponsive, MouseResponsive):
         self._draw_position = position
         super().__init__(pygame.Rect(*self._draw_position, w, h), mouse_button)
 
+    @property
+    def draw_position(self):
+        return self._draw_position
+
     def draw(self, screen):
         if self._is_addressed():
             screen.blit(self._addressing_image, self._draw_position)

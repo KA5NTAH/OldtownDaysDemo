@@ -1,5 +1,5 @@
 from responsive_objects.lvl_button import LvlButton
-from game_constants import SCREEN_WIDTH, SCREEN_HEIGHT, LVL_BUTTONS_IMAGES, LVL_ICON_HEIGHT, LVL_ICON_WIDTH, MOUSE_KEY
+from game_constants import SCREEN_WIDTH, SCREEN_HEIGHT, LVL_BUTTONS_INFO, LVL_ICON_HEIGHT, LVL_ICON_WIDTH, MOUSE_KEY
 import pygame
 import numpy as np
 from game_enums.user_intention import UserIntention
@@ -29,7 +29,7 @@ class LevelPanel:
     def _init_buttons(self):
         positions = self._get_drawing_positions()
         buttons = []
-        for index, images in enumerate(LVL_BUTTONS_IMAGES):
+        for index, images in enumerate(LVL_BUTTONS_INFO):
             button = LvlButton(*images, positions[index], MOUSE_KEY)
             buttons.append(button)
         return buttons

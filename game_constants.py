@@ -112,9 +112,10 @@ for bonus in Bonuses:
     BONUSES_IMAGES[bonus] = img_dict
 
 
+ACHIEVEMENTS_BACKGROUND = pygame.image.load(os.path.join(BACKGROUNDS_DIR, "Achievements_background.png"))
 ACHIEVEMENT_ICON_POS = (200, 175)
 ACHIEVEMENT_DESCRIPTION_POS = (447, 175)
-ACHIEVEMENT_X_START = 50
+ACHIEVEMENT_X_START = 60
 ACHIEVEMENT_Y_START = 50
 ACHIEVEMENT_X_GAP = 20
 ACHIEVEMENT_Y_GAP = 20
@@ -166,15 +167,28 @@ bonus_name:
 """
 
 
-LVL_BUTTONS_IMAGES = []
-locked_level_button = pygame.image.load(os.path.join(LVL_BUTTONS_DIR, 'LvlCloseIcon.png'))
-for folder_name in sorted(os.listdir(LVL_BUTTONS_DIR)):
+LVL_SHOOSING_BACKGROUND = pygame.image.load(os.path.join(BACKGROUNDS_DIR, "Level_choosing_background.png"))
+LVL_BUTTONS_X_START = 60
+LVL_BUTTONS_Y_START = 50
+LVL_BUTTONS_X_GAP = 20
+LVL_BUTTONS_Y_GAP = 20
+LVL_BUTTONS_X_STOP = SCREEN_WIDTH - LVL_ICON_WIDTH - ACHIEVEMENT_X_GAP
+LVL_BUTTONS_Y_STOP = SCREEN_HEIGHT - LVL_ICON_HEIGHT - ACHIEVEMENT_Y_GAP
+x = np.arange(LVL_BUTTONS_X_START, LVL_BUTTONS_X_STOP + 1, LVL_ICON_WIDTH + LVL_BUTTONS_X_GAP)
+y = np.arange(LVL_BUTTONS_Y_START, LVL_BUTTONS_Y_STOP + 1, LVL_ICON_HEIGHT + LVL_BUTTONS_Y_GAP)
+xx, yy = np.meshgrid(x, y)
+LVL_BUTTONS_POSITIONS = np.vstack((xx.flatten(), yy.flatten())).T
+
+
+LVL_BUTTONS_INFO = []
+LOCKED_LEVEL_IMAGE = pygame.image.load(os.path.join(LVL_BUTTONS_DIR, 'LvlCloseIcon.png'))
+for folder_name, pos in zip(sorted(os.listdir(LVL_BUTTONS_DIR)), LVL_BUTTONS_POSITIONS):
     folder_path = os.path.join(LVL_BUTTONS_DIR, folder_name)
     if not os.path.isdir(folder_path):
         continue
     idle_image = pygame.image.load(os.path.join(folder_path, 'idle.png'))
     selected_image = pygame.image.load(os.path.join(folder_path, 'selected.png'))
-    LVL_BUTTONS_IMAGES.append([locked_level_button, idle_image, selected_image])
+    LVL_BUTTONS_INFO.append({"images": [idle_image, selected_image], "position": pos, "lvl_num": int(folder_name)})
 
 
 

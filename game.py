@@ -10,6 +10,7 @@ from navigator import Navigator
 from game_enums.user_intention import UserIntention
 from switch_state_command import SwitchStateCommand
 from set_achievement_command import SetAchievementCommand
+from set_level_command import SetLevelCommand
 from achievement_manager import AchievementManager
 from persistent_objects.currencies_manager import CurrenciesManager
 from responsive_objects.keyboard_responsive import KeyboardResponsive
@@ -23,12 +24,17 @@ class Game:
         self._screen = pygame.display.set_mode((game_constants.SCREEN_WIDTH, game_constants.SCREEN_HEIGHT))
         self._state = GameState.GAME_MODE_CHOOSING
         self._navigator = Navigator()
+        # backgrounds
         self._menu_bg = game_constants.MENU_BACKGROUND
+        self._achievements_bg = game_constants.ACHIEVEMENTS_BACKGROUND
         self._mode_choosing_bg = game_constants.MODE_SELECTION_BACKGROUND
+        self._level_choosing_bg = game_constants.LVL_SHOOSING_BACKGROUND
+        # buttons sets
         self._menu_buttons = self._init_menu_buttons()
         self._game_choosing_buttons = self._init_game_choosing_buttons()
         self._achievements_info = self._init_achievements_info()
         self._level_buttons = self._init_level_buttons()
+        self._locked_level_icon = game_constants.LOCKED_LEVEL_IMAGE
         self._achievement_manager = AchievementManager(game_constants.ACHIEVEMENTS_INFO)
         self._currencies_manager = CurrenciesManager(game_constants.CURRENCIES_INFO)
         # keep track of escape button
@@ -44,8 +50,17 @@ class Game:
         for b in buttons:
             b.draw(screen)
 
+    def _get_achievement_completness(self):
+        # todo cache achievement completeness and get new only if needed
+        res = self._achievement_manager.get_achievements_completeness()
+        dummy = True
+        if dummy:
+            for key in res.keys():
+                res[key] = True
+        return res
+
     def _draw_achievement_buttons(self, screen):
-        completeness_map = self._achievement_manager.get_achievements_completeness()
+        completeness_map = self._get_achievement_completness()
         for key in completeness_map.keys():
             # fixme delete later needed because not all images are ready
             if key not in self._achievements_info:
@@ -56,7 +71,7 @@ class Game:
                 self._achievements_info[key]["locked_button"].draw(screen)
 
     def _display_achievement(self, screen, ach_name):
-        completeness_map = self._achievement_manager.get_achievements_completeness()
+        completeness_map = self._get_achievement_completness()
         screen.blit(self._achievements_info[ach_name]["description"], game_constants.ACHIEVEMENT_DESCRIPTION_POS)
         if completeness_map[self._navigator.displayed_achievement]:
             screen.blit(self._achievements_info[ach_name]["unlocked_icon"], game_constants.ACHIEVEMENT_ICON_POS)
@@ -64,7 +79,7 @@ class Game:
             screen.blit(self._achievements_info[ach_name]["locked_icon"], game_constants.ACHIEVEMENT_ICON_POS)
 
     def _process_achievements_buttons(self):
-        completeness_map = self._achievement_manager.get_achievements_completeness()
+        completeness_map = self._get_achievement_completness()
         for key in completeness_map.keys():
             # fixme delete later needed because not all images are ready
             if key not in self._achievements_info:
@@ -95,7 +110,6 @@ class Game:
             achievements_info[key] = achievement_info
         return achievements_info
 
-    # approved
     def _init_menu_buttons(self):
         menu_buttons = []
         for button_info in game_constants.MENU_BUTTONS_INFO:
@@ -108,7 +122,6 @@ class Game:
             menu_buttons.append(button)
         return menu_buttons
 
-    # approved
     def _init_game_choosing_buttons(self):
         game_choosing_buttons = []
         for button_info in game_constants.MODE_SELECTION_BUTTONS_INFO:
@@ -121,10 +134,41 @@ class Game:
         return game_choosing_buttons
 
     def _init_level_buttons(self):
-        return []
+        level_choosing_buttons = []
+        for button_info in game_constants.LVL_BUTTONS_INFO:
+            images = button_info["images"]
+            position = button_info["position"]
+            lvl_num = button_info["lvl_num"]
+            command = SetLevelCommand(self._navigator, lvl_num)
+            button = Button(*images, position, game_constants.MOUSE_KEY, command)
+            level_choosing_buttons.append(button)
+        return level_choosing_buttons
+
+    def _draw_level_buttons(self, screen):
+        levels_availability = self._get_levels_availability()
+        for button, is_available in zip(self._level_buttons, levels_availability):
+            if is_available:
+                button.draw(screen)
+            else:
+                pos = button.draw_position
+                screen.blit(self._locked_level_icon, pos)
+
+    def _process_level_buttons(self):
+        levels_availability = self._get_levels_availability()
+        for button, is_available in zip(self._level_buttons, levels_availability):
+            if is_available:
+                user_intention = button.get_user_intention_and_update_track()
+                if user_intention == UserIntention.SWITCH_OFF:
+                    button.click()
 
     def _init_levels(self):
         return []
+
+    # fixme levels dont have configs for now so dummy verision is used for now
+    def _get_levels_availability(self):
+        dummy = [False] * 100
+        dummy[0] = True
+        return dummy
 
     def update(self):
         # detect escape command
@@ -137,7 +181,7 @@ class Game:
         if self._navigator.current_state == GameState.GAME_MODE_CHOOSING:
             self._process_buttons(self._game_choosing_buttons)
         if self._navigator.current_state == GameState.LEVEL_CHOOSING:
-            self._process_buttons(self._level_buttons)
+            self._process_level_buttons()
         if self._navigator.current_state == GameState.ACHIEVEMENTS:
             self._process_achievements_buttons()
         if self._navigator.current_state == GameState.EXIT:
@@ -153,10 +197,15 @@ class Game:
         if self._navigator.current_state == GameState.LEVEL_CHOOSING:
             self._draw_buttons(self._level_buttons, screen)
         if self._navigator.current_state == GameState.ACHIEVEMENTS:
+            screen.blit(self._achievements_bg, (0, 0))
             self._draw_achievement_buttons(screen)
         if self._navigator.current_state == GameState.ACHIEVEMENT_VIEW:
+            screen.blit(self._achievements_bg, (0, 0))
             ach_name = self._navigator.displayed_achievement
             self._display_achievement(screen, ach_name)
+        if self._navigator.current_state == GameState.LEVEL_CHOOSING:
+            screen.blit(self._level_choosing_bg, (0, 0))
+            self._draw_level_buttons(screen)
 
     def run(self):
         while True:
