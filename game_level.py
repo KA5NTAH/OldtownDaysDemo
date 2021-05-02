@@ -1,8 +1,8 @@
-import game_constants
 from responsive_objects.slide import Slide
 from responsive_objects.mouse_responsive import MouseResponsive
 from link import Link
-from droplet import Droplet
+import os
+from droplet import Droplet  # fixme is it necessary
 from channel import Channel
 import game_constants
 from game_enums.bonuses import Bonuses
@@ -21,6 +21,8 @@ import utils
 from collections import deque
 import sys
 from typing import List
+from persistent_objects.persistent_object import PersistentObject
+import json
 
 
 # todo implement bonus
@@ -28,33 +30,81 @@ from typing import List
 # todo add winner and loser options
 # todo add trial of the seven
 # todo add persistent inheritance
-class GameLevel(MouseResponsive, Slide):
-    def __init__(self, mouse_key: int, metals: List[Metals], challenges: List[Challenge],
-                 droplets_queue: deque, fails_limit: int, challenge_wait_time: int, coins_frequency: int,
-                 drops_frequency: int, coins_prob_distribution: List[float]):
+# todo
+
+
+class GameLevel(MouseResponsive, Slide, PersistentObject):
+    def __init__(self, mouse_key: int, persistent_cfg_path: str, level_info_cfg: str):
         super().__init__(mouse_key)
+        PersistentObject.__init__(self, persistent_cfg_path)
+        self._level_parameters = level_info_cfg
+        self._availability_info = {"unlocked": False}
+        self._init_from_file()
+
         self._stage = LvlStage.USUAL_PLAY
-        self._channels = self._init_channels(metals, challenge_wait_time)
-        self._metal_challenge_dict = dict(zip(metals, challenges))
+        # CONFIG PARAMETERS
+        self._metals = None
+        self._channels = None   # fixme done
+        self._coins_frequency = None  # fixme  done
+        self._metal_challenge_dict = None   # fixme done
         self._current_challenge = None
         self._controlled_link = None
+        self._drops_frequency = None  # fixme done
+        self._coins_prob_distribution = None  # fixme done
+        self._fails_limit = None   # fixme done
+        self._droplets_queue = None  # fixme done
+        # CONFIG PARAMETERS
+        self._init_from_config()
+
         # channel from which player get controlled link
         self._robbed_channel_index = None
-        self._fails_limit = fails_limit
         self._fails_count = 0
-        self._links_count = len(metals)
-        self._complete_links_dict = dict.fromkeys(metals, False)
+        self._links_count = len(self._metals)
+        self._complete_links_dict = dict.fromkeys(self._metals, False)
         self._complete_links_count = 0
         # deque that represents metal order of droplets
-        self._droplets_queue = droplets_queue
-        self._coins_frequency = coins_frequency
-        self._drops_frequency = drops_frequency
-        self._coins_prob_distribution = coins_prob_distribution
         self._coins = []
         self._relative_movement = pygame.mouse.get_rel()
 
+    def _init_from_config(self):
+        with open(self._level_parameters) as file:
+            level_parameters = json.load(file)
+            self._fails_limit = level_parameters["Fails_limit"]
+            self._coins_prob_distribution = level_parameters["Coins_probability"]
+            self._drops_frequency = level_parameters["Drops_frequency"]
+            self._coins_frequency = level_parameters["Coins_frequency"]
+            metals = [Metals._member_map_[cfg_str] for cfg_str in level_parameters["Links"]]
+            self._metals = metals
+            deque_data = metals * level_parameters["Droplets_per_metal_amount"]
+            rd.shuffle(deque_data)
+            self._droplets_queue = deque(deque_data)
+            self._channels = self._init_channels(level_parameters["Link_filling_rate"],
+                                                 level_parameters["Challenge_wait_time"])
+            # init challenges
+            self._metal_challenge_dict = {}
+            challenges_time = level_parameters["Challenges_time"]
+            for metal in metals:
+                challenge_info = level_parameters["Challenges"][metal.name]
+                coordinates = np.array(challenge_info["coordinates"])
+                timer_color = challenge_info["timer_color"]
+                # fixme now only gold because not all images are ready yet
+                challenge = Challenge(coordinates, Metals.GOLD, challenges_time, timer_color, game_constants.MOUSE_KEY)
+                self._metal_challenge_dict[metal] = challenge
+
+    def _init_from_file(self) -> None:
+        print("init from file")
+        if not os.path.exists(self._config_path):
+            print("dump into file ")
+            self.dump_into_file()
+        else:
+            with open(self._config_path) as file:
+                self._availability_info = json.load(file)
+
+    def dump_into_file(self):
+        with open(self._config_path, 'w') as file:
+            json.dump(self._availability_info, file)
+
     def set_events(self):
-        print(self._drops_frequency)
         pygame.time.set_timer(game_constants.GENERATE_DROP_EVENT.type, self._drops_frequency)
         pygame.time.set_timer(game_constants.GENERATE_COIN_EVENT.type, self._coins_frequency)
 
@@ -87,7 +137,7 @@ class GameLevel(MouseResponsive, Slide):
     def _refresh_expiring_objects(self):
         """
         Update clock of expiring objects in order to not substract some period of time from their life time
-        For example when player returns to usual play after challenge time that he has spent in challenge
+        For example when player returns to usual play after challenge, time that he has spent in challenge
         should not be counted as passed lifetime of coins
         """
         for coin_ind in range(len(self._coins)):
@@ -225,15 +275,15 @@ class GameLevel(MouseResponsive, Slide):
         elif self._stage == LvlStage.WINNER_OPTIONS:
             screen.fill((0, 255, 0))
 
-    def _init_channels(self, metals, time):
+    def _init_channels(self, filling_rate, time):
         """initialize channels with links. Info about links is drawn from metals list and game constant.
         game constants provide images for links of every metal and their positional arrangement based on their numbers
         """
-        links_coordinates = game_constants.LINKS_COORDINATES[len(metals)]
+        links_coordinates = game_constants.LINKS_COORDINATES[len(self._metals)]
         channels = []
-        for metal, coord in zip(metals, links_coordinates):
+        for metal, coord in zip(self._metals, links_coordinates):
             images = game_constants.LINKS_IMAGES[metal]
-            link = Link(*images, coord, time, metal, game_constants.MOUSE_KEY)
+            link = Link(*images, filling_rate, coord, time, metal, game_constants.MOUSE_KEY)
             channels.append(Channel(link))
         return channels
 
@@ -258,42 +308,27 @@ class GameLevel(MouseResponsive, Slide):
 
 
 if __name__ == "__main__":
-    pygame.init()
-    links_metals = [Metals.GOLD,
-                    Metals.BRONZE,
-                    Metals.BLACK_IRON,
-                    Metals.SILVER,
-                    Metals.COPPER]
-    droplets = deque(links_metals * 100)
-    ccord = [[100, 100],
-             [500, 200],
-             [900, 100],
-             [1000, 500],
-             [100, 600]]
-    c = Challenge(ccord, Metals.GOLD, 10000, (255, 0, 0), 0)
-    c1 = Challenge(ccord, Metals.GOLD, 10000, (255, 0, 0), 0)
-    c2 = Challenge(ccord, Metals.GOLD, 10000, (255, 0, 0), 0)
-    c3 = Challenge(ccord, Metals.GOLD, 10000, (255, 0, 0), 0)
-    c4 = Challenge(ccord, Metals.GOLD, 10000, (255, 0, 0), 0)
-    challenges = [c, c1, c2, c3, c4]
-    Lvl = GameLevel(game_constants.MOUSE_KEY, links_metals, challenges, droplets, 1000, 100, 3000, 100, [0.6, 0.3, 0.1])
-    Lvl.set_events()
-    screen = pygame.display.set_mode((1200, 680))
-
-    from achievement_manager import AchievementManager
-    from persistent_objects.currencies_manager import CurrenciesManager
-    am = AchievementManager("am.json")
-    cm = CurrenciesManager("cm.json")
-    while True:
-        events = pygame.event.get((pygame.QUIT, ))
-        for event in events:
-            if event.type == pygame.QUIT:
-                sys.exit()
-        screen.fill((255, 255, 255))
-        # update block
-        Lvl.update(am, cm)
-        # draw block
-        Lvl.draw(screen)
-        pygame.display.flip()
-
+    test_level = True
+    if test_level:
+        pygame.init()
+        persistent_info = "E:\\develop\\OldtownDays\\persistent_info\\levels_info\\001.json"
+        level_parameters = "E:\\develop\\OldtownDays\\levels_parameters\\001.json"
+        Lvl = GameLevel(game_constants.MOUSE_KEY, persistent_info, level_parameters)
+        Lvl.set_events()
+        screen = pygame.display.set_mode((1200, 680))
+        from achievement_manager import AchievementManager
+        from persistent_objects.currencies_manager import CurrenciesManager
+        am = AchievementManager("am.json")
+        cm = CurrenciesManager("cm.json")
+        while True:
+            events = pygame.event.get((pygame.QUIT, ))
+            for event in events:
+                if event.type == pygame.QUIT:
+                    sys.exit()
+            screen.fill((255, 255, 255))
+            # update block
+            Lvl.update(am, cm)
+            # draw block
+            Lvl.draw(screen)
+            pygame.display.flip()
 

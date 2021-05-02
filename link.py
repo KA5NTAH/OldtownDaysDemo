@@ -11,7 +11,7 @@ from game_constants import LINK_METAL_EVENT_DICT
 
 class Link(RectangleResponsive, MouseResponsive, ExpiringObject):
 	""" Link main task is to keep track of its state """  # fixme doc string
-	def __init__(self, empty_img, full_img, timer_img, position, time, metal, mouse_key):
+	def __init__(self, empty_img, full_img, timer_img, filling_rate, position, time, metal, mouse_key):
 		self._stage = LinkStage.FILLING
 		self._empty_img = empty_img
 		self._full_img = full_img
@@ -19,7 +19,7 @@ class Link(RectangleResponsive, MouseResponsive, ExpiringObject):
 		self._drawing_position = position
 		self._metal = metal
 		_, _, w, h = self._empty_img.get_rect()
-		self._filling_rate = 1  # fixme maybe it should be parameter of __init__
+		self._filling_rate = filling_rate
 		self._filled_lvl = 0
 		self._height = h
 		self._event_posted = False
