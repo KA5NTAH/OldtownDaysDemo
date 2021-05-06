@@ -19,6 +19,7 @@ from trial_command import TrialCommand
 from switch_play_state_command import SwitchPlayStateCommand
 from game_enums.lvl_stage import LvlStage
 from game_level import GameLevel
+from state_setback_command import StateSetbackCommand
 import utils
 
 
@@ -134,7 +135,7 @@ class Game:
         idle_levels, addressing_levels = back_to_levels_images
         levels_pos = loser_buttons_info["menu"]["position"]
         back_to_levels_button = Button(idle_levels, addressing_levels, levels_pos, game_constants.MOUSE_KEY,
-                                       SwitchStateCommand(self._navigator, GameState.LEVEL_CHOOSING))
+                                       StateSetbackCommand(self._navigator))
         loser_buttons = {"bribe": {"opened": open_bribe_button, "closed": closed_bribe_button},
                          "trial": {"opened": open_trial_button, "closed": closed_trial_button},
                          "menu": back_to_levels_button}
@@ -188,7 +189,7 @@ class Game:
             levels.append(level)
         return levels
 
-    # fixme levels dont have configs for now so dummy verision is used for now
+    # fixme levels dont have configs for now so dummy version is used for now
     def _get_levels_availability(self):
         dummy = [False] * 100
         dummy[0] = True

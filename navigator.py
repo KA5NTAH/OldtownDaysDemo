@@ -30,17 +30,22 @@ class Navigator:
 
     def switch_to_state(self, dst_state):
         self._state_history.append(self._current_state)
-        self._current_state = dst_state
+        # if we left play state its history should be deleted
         if self._current_state == GameState.PLAY:
-            self._current_level_state = LvlStage.USUAL_PLAY
+            self._play_state_history = []
+        self._current_state = dst_state
+        # if we come into play state lvl should be set into usual play
+        if self._current_state == GameState.PLAY:
+            self.switch_to_play_state(LvlStage.USUAL_PLAY)
 
     def switch_to_play_state(self, dst_state):
         self._play_state_history.append(self._current_level_state)
         self._current_level_state = dst_state
 
     def go_back(self):
-        if self._state_history:
-            self._current_state = self._state_history.pop(-1)
+        if self._current_state == GameState.PLAY:
+            self._play_state_history = []
+        self._current_state = self._state_history.pop(-1)
 
     def set_achievement(self, achievement: AchievementsNames):
         self._displayed_achievement = achievement
