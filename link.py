@@ -26,7 +26,6 @@ class Link(RectangleResponsive, MouseResponsive, ExpiringObject):
 		super().__init__(pygame.Rect(*self._drawing_position, w, h), mouse_key)
 		ExpiringObject.__init__(self, time)
 
-	# todo keep only one rectangle (delete properties of other)
 	# todo add event generator + make sure that event will be sent only once
 	@property
 	def addressing_rect(self):

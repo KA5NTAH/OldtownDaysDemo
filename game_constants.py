@@ -3,6 +3,7 @@ from game_enums.metals import Metals
 from game_enums.coins_kinds import CoinsKinds
 from game_enums.achievements_names import AchievementsNames
 from game_enums.game_state import GameState
+from game_enums.lvl_stage import LvlStage
 from game_enums.bonuses import Bonuses
 import pygame
 import numpy as np
@@ -25,9 +26,10 @@ DROPLETS_DIR = os.path.join(RESOURSES_DIR, 'Droplets')
 LVL_BUTTONS_DIR = os.path.join(RESOURSES_DIR, 'LvlButtons')
 BACKGROUNDS_DIR = os.path.join(RESOURSES_DIR, 'Backgrounds')
 PERSISTENT_INFO_DIR = os.path.join(SCRIPT_DIR, "persistent_info")
-ACHIEVEMENTS_INFO = os.path.join(PERSISTENT_INFO_DIR, "achievement_info.json")
-CURRENCIES_INFO = os.path.join(PERSISTENT_INFO_DIR, "currencies_info.json")
-
+ACHIEVEMENTS_INFO_PATH = os.path.join(PERSISTENT_INFO_DIR, "achievement_info.json")
+CURRENCIES_INFO_PATH = os.path.join(PERSISTENT_INFO_DIR, "currencies_info.json")
+LEVELS_CONFIGS_PATH = os.path.join(SCRIPT_DIR, "levels_parameters")
+PERSISTENT_LEVEL_INFO_PATH = os.path.join(PERSISTENT_INFO_DIR, "levels_info")
 # GAME CONSTANTS
 MOUSE_KEY = 0
 LINKS_SWAP_THRD = 0.2
@@ -295,3 +297,32 @@ COINS_HEIGHT = 70
 COINS_EDGE_OFFSET = 100
 COINS_X_BOUNDARIES = (COINS_WIDTH + COINS_EDGE_OFFSET, SCREEN_WIDTH - COINS_EDGE_OFFSET)
 COINS_Y_BOUNDARIES = (COINS_HEIGHT + COINS_EDGE_OFFSET, links_y - COINS_EDGE_OFFSET)
+
+
+
+# --------------------- LEVEL IMAGES -------------------
+# MODE_SELECTION_BUTTONS_INFO.append({"images": images, "position": pos, "state": state})
+# fixme maybe buttons should be initialized by one function Seems like process can standardized
+loser_options_dir = os.path.join(RESOURSES_DIR, "LoserOptionsButtons")
+LOSER_OPTIONS_BACKGROUND = pygame.image.load(os.path.join(BACKGROUNDS_DIR, "Loser_options_background.png"))
+loser_buttons_positions = {"bribe": [60, 80],
+                           "menu": [443, 80],
+                           "trial": [826, 80]}
+BRIBE_COST = 250
+TRIAL_OF_THE_SEVEN_COST = 50
+
+
+LOSER_BUTTONS_INFO = {}
+# init buttons
+bribe_folder = os.path.join(loser_options_dir, "bribe")
+for folder in os.listdir(loser_options_dir):
+    if folder != "menu":
+        idle_img = pygame.image.load(os.path.join(loser_options_dir, folder, "idle.png"))
+        closed_img = pygame.image.load(os.path.join(loser_options_dir, folder, "closed.png"))
+        opened_img = pygame.image.load(os.path.join(loser_options_dir, folder, "opened.png"))
+        images = [idle_img, closed_img, opened_img]
+    else:
+        idle_img = pygame.image.load(os.path.join(loser_options_dir, folder, "idle.png"))
+        addressing_img = pygame.image.load(os.path.join(loser_options_dir, folder, "addressing.png"))
+        images = [idle_img, addressing_img]
+    LOSER_BUTTONS_INFO[folder] = {"images": images, "position": loser_buttons_positions[folder]}

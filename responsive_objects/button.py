@@ -5,7 +5,6 @@ from command import Command
 import pygame
 
 
-# todo all buttons should be like this
 class Button(RectangleResponsive, MouseResponsive):
     """Button is mean to represent simple button without additional conditions. It has 2 stages reflected by
     its draw logic:

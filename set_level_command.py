@@ -1,6 +1,7 @@
 from command import Command
 from navigator import Navigator
 from game_enums.game_state import GameState
+from game_enums.lvl_stage import LvlStage
 
 
 class SetLevelCommand(Command):

@@ -2,10 +2,8 @@ import os
 import matplotlib.pyplot as plt
 import pygame
 import sys
-# todo move to consts file
-GOLDEN_COLOR = "gold"
-BLACK_IRON_COLOR = "black_iron"
-SCRIPT_DIR = os.path.dirname(__file__)
+from responsive_objects.button import Button
+from game_enums.user_intention import UserIntention
 
 
 def get_lines_overlapping(line1, line2):
@@ -41,15 +39,23 @@ def get_iou(bb1, bb2):
 	return intersection / union
 
 
-def load_images_by_metal_key(metal_key):
-	# demo version for two links
-	filled_img = None
-	if metal_key == GOLDEN_COLOR:
-		filled_img = pygame.image.load(os.path.join(SCRIPT_DIR, "resourses", "golden_ref.png"))
-	elif metal_key == BLACK_IRON_COLOR:
-		filled_img = pygame.image.load(os.path.join(SCRIPT_DIR, "resourses", "black_iron_ref.png"))
-	empty_img = pygame.image.load(os.path.join(SCRIPT_DIR, "resourses", "empty_ref.png"))
-	return empty_img, filled_img
+# todo should use only this function to init buttons from info dicitonary
+def init_buttons_from_info(button_info, command_creator, mouse_key):
+	buttons = []
+	for button_info in button_info:
+		images = button_info["images"]
+		position = button_info["position"]
+		command = command_creator(button_info)
+		button = Button(*images, position, mouse_key, command)
+		buttons.append(button)
+	return buttons
+
+
+def process_buttons(buttons):
+	for index in range(len(buttons)):
+		user_intention = buttons[index].get_user_intention_and_update_track()
+		if user_intention == UserIntention.SWITCH_OFF:
+			buttons[index].click()
 
 
 if __name__ == "__main__":

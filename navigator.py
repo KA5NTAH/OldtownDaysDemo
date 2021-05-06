@@ -1,17 +1,24 @@
 from game_enums.game_state import GameState
 from game_enums.achievements_names import AchievementsNames
+from game_enums.lvl_stage import LvlStage
 
 
 class Navigator:
     def __init__(self):
         self._current_state = GameState.MENU
         self._state_history = [GameState.EXIT]
+        self._play_state_history = []
         self._played_level = None
+        self._current_level_state = LvlStage.USUAL_PLAY
         self._displayed_achievement = None
 
     @property
     def current_state(self):
         return self._current_state
+
+    @property
+    def current_level_state(self):
+        return self._current_level_state
 
     @property
     def displayed_achievement(self):
@@ -24,6 +31,12 @@ class Navigator:
     def switch_to_state(self, dst_state):
         self._state_history.append(self._current_state)
         self._current_state = dst_state
+        if self._current_state == GameState.PLAY:
+            self._current_level_state = LvlStage.USUAL_PLAY
+
+    def switch_to_play_state(self, dst_state):
+        self._play_state_history.append(self._current_level_state)
+        self._current_level_state = dst_state
 
     def go_back(self):
         if self._state_history:

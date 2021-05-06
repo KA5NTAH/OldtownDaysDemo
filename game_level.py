@@ -23,38 +23,70 @@ import sys
 from typing import List
 from persistent_objects.persistent_object import PersistentObject
 import json
+import utils
+from switch_play_state_command import SwitchPlayStateCommand
+from navigator import Navigator
+from achievement_manager import AchievementManager
+from persistent_objects.currencies_manager import CurrenciesManager
 
 
 # todo implement bonus
 # todo finish draw functions: draw fail/winning progress
 # todo add winner and loser options
 # todo add trial of the seven
-# todo add persistent inheritance
-# todo
+# todo add buttons for winner/loser options + backgrounds
+# todo add new command ------ DONE
+# todo add play state support in navigator and level should interact with state through navigator --- DOING
+# fixme maybe currencies manager and achievement manager should be attibutes of the game level PROBABLY
+# todo add images for buttons
+# todo add images for progress
+# todo add bonus interaction and images for bonus
+# todo init buttons like this
+# def __init__(self, idle_image, addressing_image, position, mouse_button, command: Command):
 
 
 class GameLevel(MouseResponsive, Slide, PersistentObject):
-    def __init__(self, mouse_key: int, persistent_cfg_path: str, level_info_cfg: str):
+    def __init__(self, mouse_key: int, persistent_cfg_path: str, level_info_cfg_path: str, navigator: Navigator,
+                 currencies_manager: CurrenciesManager, achievement_manager: AchievementManager,
+                 loser_options_buttons, winner_options_buttons):
         super().__init__(mouse_key)
         PersistentObject.__init__(self, persistent_cfg_path)
-        self._level_parameters = level_info_cfg
+        self._level_parameters_cfg_path = level_info_cfg_path
         self._availability_info = {"unlocked": False}
         self._init_from_file()
+        self._navigator = navigator
 
-        self._stage = LvlStage.USUAL_PLAY
+        self._winner_options_buttons = winner_options_buttons
+        self._currencies_manager = currencies_manager
+        self._achievement_manager = achievement_manager
         # CONFIG PARAMETERS
         self._metals = None
-        self._channels = None   # fixme done
-        self._coins_frequency = None  # fixme  done
-        self._metal_challenge_dict = None   # fixme done
+        self._channels = None
+        self._coins_frequency = None
+        self._metal_challenge_dict = None
         self._current_challenge = None
         self._controlled_link = None
-        self._drops_frequency = None  # fixme done
-        self._coins_prob_distribution = None  # fixme done
-        self._fails_limit = None   # fixme done
-        self._droplets_queue = None  # fixme done
+        self._drops_frequency = None
+        self._coins_prob_distribution = None
+        self._fails_limit = None
+        self._droplets_queue = None
         # CONFIG PARAMETERS
         self._init_from_config()
+
+        # ------------------ BACKGROUNDS --------------
+        self._level_background = game_constants.LVL_BACKGROUND
+        self._loser_options_background = game_constants.LOSER_OPTIONS_BACKGROUND
+        # ------------------ BACKGROUNDS --------------
+
+        # ------------------ BUTTONS PARAMETERS ------------------
+        # WINNER OPTIONS
+        self._loser_options_buttons = loser_options_buttons
+        # undefined yet trial and bribe buttons
+        self._current_trial_button = None
+        self._current_bribe_button = None
+
+        # LOSER OPTIONS
+        # ------------------ BUTTONS PARAMETERS ------------------
 
         # channel from which player get controlled link
         self._robbed_channel_index = None
@@ -66,8 +98,21 @@ class GameLevel(MouseResponsive, Slide, PersistentObject):
         self._coins = []
         self._relative_movement = pygame.mouse.get_rel()
 
+    def _set_looser_buttons(self):
+        # set bribe button
+        if self._currencies_manager.targ_coins_balance >= game_constants.BRIBE_COST:
+            self._current_bribe_button = self._loser_options_buttons["bribe"]["opened"]
+        else:
+            self._current_bribe_button = self._loser_options_buttons["bribe"]["closed"]
+
+        # set trial button
+        if self._currencies_manager.faith_coins_balance >= game_constants.TRIAL_OF_THE_SEVEN_COST:
+            self._current_trial_button = self._loser_options_buttons["trial"]["opened"]
+        else:
+            self._current_trial_button = self._loser_options_buttons["trial"]["closed"]
+
     def _init_from_config(self):
-        with open(self._level_parameters) as file:
+        with open(self._level_parameters_cfg_path) as file:
             level_parameters = json.load(file)
             self._fails_limit = level_parameters["Fails_limit"]
             self._coins_prob_distribution = level_parameters["Coins_probability"]
@@ -91,7 +136,7 @@ class GameLevel(MouseResponsive, Slide, PersistentObject):
                 challenge = Challenge(coordinates, Metals.GOLD, challenges_time, timer_color, game_constants.MOUSE_KEY)
                 self._metal_challenge_dict[metal] = challenge
 
-    def _init_from_file(self) -> None:
+    def _init_from_file(self):
         print("init from file")
         if not os.path.exists(self._config_path):
             print("dump into file ")
@@ -100,35 +145,48 @@ class GameLevel(MouseResponsive, Slide, PersistentObject):
             with open(self._config_path) as file:
                 self._availability_info = json.load(file)
 
+    def _init_channels(self, filling_rate, time):
+        """initialize channels with links. Info about links is drawn from metals list and game constant.
+        game constants provide images for links of every metal and their positional arrangement based on their numbers
+        """
+        links_coordinates = game_constants.LINKS_COORDINATES[len(self._metals)]
+        channels = []
+        for metal, coord in zip(self._metals, links_coordinates):
+            images = game_constants.LINKS_IMAGES[metal]
+            link = Link(*images, filling_rate, coord, time, metal, game_constants.MOUSE_KEY)
+            channels.append(Channel(link))
+        return channels
+
     def dump_into_file(self):
         with open(self._config_path, 'w') as file:
             json.dump(self._availability_info, file)
 
-    def set_events(self):
+    def activate_events(self):
         pygame.time.set_timer(game_constants.GENERATE_DROP_EVENT.type, self._drops_frequency)
         pygame.time.set_timer(game_constants.GENERATE_COIN_EVENT.type, self._coins_frequency)
 
+    def deactivate_events(self):
+        pygame.time.set_timer(game_constants.GENERATE_DROP_EVENT.type, 0)
+        pygame.time.set_timer(game_constants.GENERATE_COIN_EVENT.type, 0)
+
     def _handle_events(self):
         for event in pygame.event.get(game_constants.LVL_EVENTS_TYPES):
-            if self._stage == LvlStage.USUAL_PLAY:
+            if self._navigator.current_level_state == LvlStage.USUAL_PLAY:
                 if event.type == game_constants.GENERATE_COIN_EVENT.type:
                     self._generate_coin()
                 elif event.type == game_constants.GENERATE_DROP_EVENT.type:
                     self._set_drop_at_random_channel()
                 elif event.type == game_constants.RUINED_DROP_EVENT.type:
                     self._fails_count += 1
-                    print(self._fails_count)
                     if self._fails_count == self._fails_limit:
                         self._controlled_link = None
                         self._robbed_channel_index = None
-                        self._stage = LvlStage.LOSER_OPTIONS
+                        self._navigator.switch_to_play_state(LvlStage.LOSER_OPTIONS)
                 elif event.type in game_constants.EVENT_TYPE_NO_LINK_RUIN_METAL_DICT:
                     metal = game_constants.EVENT_TYPE_NO_LINK_RUIN_METAL_DICT[event.type]
                     if not self._complete_links_dict[metal]:
                         self._fails_count += 1
                 elif event.type in game_constants.LINK_IS_DONE_EVENTS_TYPES:
-                    for c in self._channels:
-                        print(c._link)
                     self._complete_links_count += 1
                     print(f'COMPLETED : {self._complete_links_count}')
                     metal = game_constants.EVENT_TYPE_METAL_DICT[event.type]
@@ -160,7 +218,7 @@ class GameLevel(MouseResponsive, Slide, PersistentObject):
                         print(f'CHALLENGE : {metal}')
                         self._current_challenge = self._metal_challenge_dict[metal]
                         self._current_challenge.refresh_clock()
-                        self._stage = LvlStage.CHALLENGE
+                        self._navigator.switch_to_play_state(LvlStage.CHALLENGE)
                     else:
                         self._controlled_link = self._channels[channel_num].yield_link()
                         self._robbed_channel_index = channel_num
@@ -225,67 +283,60 @@ class GameLevel(MouseResponsive, Slide, PersistentObject):
         # todo implement
         pass
 
-    def update(self, achievement_manager, currencies_manager):
-        # todo write proper doc string
+    def update(self):
         """Level update"""
         self._relative_movement = pygame.mouse.get_rel()  # update relative movement lvl
         self._handle_events()
-        if self._stage == LvlStage.USUAL_PLAY:
+        if self._navigator.current_level_state == LvlStage.USUAL_PLAY:
             if self._fails_count == self._fails_limit:
-                self._stage = LvlStage.LOSER_OPTIONS
+                self._navigator.switch_to_play_state(LvlStage.LOSER_OPTIONS)
             if self._complete_links_count == self._links_count:
-                self._stage = LvlStage.WINNER_OPTIONS
-            self._handle_user_link_actions(achievement_manager, currencies_manager)
-            self._handle_user_coin_actions(achievement_manager, currencies_manager)
+                self._navigator.switch_to_play_state(LvlStage.WINNER_OPTIONS)
+            self._handle_user_link_actions(self._achievement_manager, self._currencies_manager)
+            self._handle_user_coin_actions(self._achievement_manager, self._currencies_manager)
             for coin_index in range(len(self._coins)):
                 self._coins[coin_index].update_ttl()
             for chan_index in range(len(self._channels)):
                 self._channels[chan_index].update()
-        elif self._stage == LvlStage.CHALLENGE:
-            success = self._current_challenge.update_and_return_result(achievement_manager)
+        elif self._navigator.current_level_state == LvlStage.CHALLENGE:
+            success = self._current_challenge.update_and_return_result(self._achievement_manager)
             if success is not None:
                 if success:
                     self._handle_successful_challenge()
                 print(f'BACK TO LEVEL with {success}')
                 self._refresh_expiring_objects()
-                self._stage = LvlStage.USUAL_PLAY
-        elif self._stage == LvlStage.LOSER_OPTIONS:
+                self._navigator.switch_to_play_state(LvlStage.USUAL_PLAY)
+        elif self._navigator.current_level_state == LvlStage.LOSER_OPTIONS:
+            self._set_looser_buttons()
+            utils.process_buttons([self._current_bribe_button,
+                                   self._current_trial_button,
+                                   self._loser_options_buttons["menu"]])
+        elif self._navigator.current_level_state == LvlStage.WINNER_OPTIONS:
             pass
-        elif self._stage == LvlStage.WINNER_OPTIONS:
-            pass
-        elif self._stage == LvlStage.TRIAL_OF_THE_SEVEN:
+        elif self._navigator.current_level_state == LvlStage.TRIAL_OF_THE_SEVEN:
             pass
 
         # discard expired coins
         # self._coins = [c for c in self._coins if c.is_still_alive()]
 
     def draw(self, screen):
-        if self._stage == LvlStage.USUAL_PLAY:
-            screen.blit(game_constants.LVL_BACKGROUND, (0, 0))
+        if self._navigator.current_level_state == LvlStage.USUAL_PLAY:
+            screen.blit(self._level_background, (0, 0))
             for coin in self._coins:
                 coin.draw(screen)
             for channel in self._channels:
                 channel.draw(screen)
             if self._controlled_link is not None:
                 self._controlled_link.draw(screen)
-        elif self._stage == LvlStage.CHALLENGE:
+        elif self._navigator.current_level_state == LvlStage.CHALLENGE:
             self._current_challenge.draw(screen)
-        elif self._stage == LvlStage.LOSER_OPTIONS:
-            screen.fill((255, 0, 0))
-        elif self._stage == LvlStage.WINNER_OPTIONS:
+        elif self._navigator.current_level_state == LvlStage.LOSER_OPTIONS:
+            screen.blit(self._loser_options_background, (0, 0))
+            self._current_trial_button.draw(screen)
+            self._current_bribe_button.draw(screen)
+            self._loser_options_buttons["menu"].draw(screen)
+        elif self._navigator.current_level_state == LvlStage.WINNER_OPTIONS:
             screen.fill((0, 255, 0))
-
-    def _init_channels(self, filling_rate, time):
-        """initialize channels with links. Info about links is drawn from metals list and game constant.
-        game constants provide images for links of every metal and their positional arrangement based on their numbers
-        """
-        links_coordinates = game_constants.LINKS_COORDINATES[len(self._metals)]
-        channels = []
-        for metal, coord in zip(self._metals, links_coordinates):
-            images = game_constants.LINKS_IMAGES[metal]
-            link = Link(*images, filling_rate, coord, time, metal, game_constants.MOUSE_KEY)
-            channels.append(Channel(link))
-        return channels
 
     def _generate_coin(self):
         """generates coins based on probability distribution = [p1, p2, p3] where:
@@ -313,11 +364,12 @@ if __name__ == "__main__":
         pygame.init()
         persistent_info = "E:\\develop\\OldtownDays\\persistent_info\\levels_info\\001.json"
         level_parameters = "E:\\develop\\OldtownDays\\levels_parameters\\001.json"
-        Lvl = GameLevel(game_constants.MOUSE_KEY, persistent_info, level_parameters)
-        Lvl.set_events()
+        navigator = Navigator()
+        from game_enums.game_state import GameState
+        navigator.switch_to_state(GameState.PLAY)
+        Lvl = GameLevel(game_constants.MOUSE_KEY, persistent_info, level_parameters, navigator)
+        Lvl.activate_events()
         screen = pygame.display.set_mode((1200, 680))
-        from achievement_manager import AchievementManager
-        from persistent_objects.currencies_manager import CurrenciesManager
         am = AchievementManager("am.json")
         cm = CurrenciesManager("cm.json")
         while True:
@@ -327,8 +379,9 @@ if __name__ == "__main__":
                     sys.exit()
             screen.fill((255, 255, 255))
             # update block
-            Lvl.update(am, cm)
+            Lvl.update()
             # draw block
             Lvl.draw(screen)
             pygame.display.flip()
+
 
