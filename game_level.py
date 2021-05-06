@@ -73,6 +73,13 @@ class GameLevel(MouseResponsive, Slide, PersistentObject):
         # CONFIG PARAMETERS
         self._init_from_config()
 
+        # set progress to zero
+        self._robbed_channel_index = None
+        self._fails_count = 0
+        self._links_count = len(self._metals)
+        self._complete_links_dict = dict.fromkeys(self._metals, False)
+        self._complete_links_count = 0
+        self._coins = []
         # ------------------ BACKGROUNDS --------------
         self._level_background = game_constants.LVL_BACKGROUND
         self._loser_options_background = game_constants.LOSER_OPTIONS_BACKGROUND
@@ -80,23 +87,27 @@ class GameLevel(MouseResponsive, Slide, PersistentObject):
 
         # ------------------ BUTTONS PARAMETERS ------------------
         # WINNER OPTIONS
+        # LOSER OPTIONS
         self._loser_options_buttons = loser_options_buttons
         # undefined yet trial and bribe buttons
         self._current_trial_button = None
         self._current_bribe_button = None
+        # WINNER OPTIONS
 
-        # LOSER OPTIONS
-        # ------------------ BUTTONS PARAMETERS ------------------
+        self.nullify_progress()
+        self._relative_movement = pygame.mouse.get_rel()
 
+    def nullify_progress(self):
         # channel from which player get controlled link
         self._robbed_channel_index = None
         self._fails_count = 0
         self._links_count = len(self._metals)
         self._complete_links_dict = dict.fromkeys(self._metals, False)
         self._complete_links_count = 0
-        # deque that represents metal order of droplets
+        # init channels again
+        self._init_channels()
+        self._init_droplets_deque()
         self._coins = []
-        self._relative_movement = pygame.mouse.get_rel()
 
     def _set_looser_buttons(self):
         # set bribe button
@@ -111,6 +122,13 @@ class GameLevel(MouseResponsive, Slide, PersistentObject):
         else:
             self._current_trial_button = self._loser_options_buttons["trial"]["closed"]
 
+    def _init_droplets_deque(self):
+        with open(self._level_parameters_cfg_path) as file:
+            level_parameters = json.load(file)
+            deque_data = self._metals * level_parameters["Droplets_per_metal_amount"]
+            rd.shuffle(deque_data)
+            self._droplets_queue = deque(deque_data)
+
     def _init_from_config(self):
         with open(self._level_parameters_cfg_path) as file:
             level_parameters = json.load(file)
@@ -120,11 +138,8 @@ class GameLevel(MouseResponsive, Slide, PersistentObject):
             self._coins_frequency = level_parameters["Coins_frequency"]
             metals = [Metals._member_map_[cfg_str] for cfg_str in level_parameters["Links"]]
             self._metals = metals
-            deque_data = metals * level_parameters["Droplets_per_metal_amount"]
-            rd.shuffle(deque_data)
-            self._droplets_queue = deque(deque_data)
-            self._channels = self._init_channels(level_parameters["Link_filling_rate"],
-                                                 level_parameters["Challenge_wait_time"])
+            self._init_droplets_deque()
+            self._init_channels()
             # init challenges
             self._metal_challenge_dict = {}
             challenges_time = level_parameters["Challenges_time"]
@@ -145,17 +160,21 @@ class GameLevel(MouseResponsive, Slide, PersistentObject):
             with open(self._config_path) as file:
                 self._availability_info = json.load(file)
 
-    def _init_channels(self, filling_rate, time):
+    def _init_channels(self):
         """initialize channels with links. Info about links is drawn from metals list and game constant.
         game constants provide images for links of every metal and their positional arrangement based on their numbers
         """
-        links_coordinates = game_constants.LINKS_COORDINATES[len(self._metals)]
         channels = []
-        for metal, coord in zip(self._metals, links_coordinates):
-            images = game_constants.LINKS_IMAGES[metal]
-            link = Link(*images, filling_rate, coord, time, metal, game_constants.MOUSE_KEY)
-            channels.append(Channel(link))
-        return channels
+        with open(self._level_parameters_cfg_path) as file:
+            level_parameters = json.load(file)
+            filling_rate = level_parameters["Link_filling_rate"]
+            time = level_parameters["Challenge_wait_time"]
+            links_coordinates = game_constants.LINKS_COORDINATES[len(self._metals)]
+            for metal, coord in zip(self._metals, links_coordinates):
+                images = game_constants.LINKS_IMAGES[metal]
+                link = Link(*images, filling_rate, coord, time, metal, game_constants.MOUSE_KEY)
+                channels.append(Channel(link))
+        self._channels = channels
 
     def dump_into_file(self):
         with open(self._config_path, 'w') as file:

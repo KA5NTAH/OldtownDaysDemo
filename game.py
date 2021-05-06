@@ -167,10 +167,12 @@ class Game:
 
     def _process_level_buttons(self):
         levels_availability = self._get_levels_availability()
-        for button, is_available in zip(self._level_buttons, levels_availability):
+        for level_index, (button, is_available) in enumerate(zip(self._level_buttons, levels_availability)):
             if is_available:
                 user_intention = button.get_user_intention_and_update_track()
                 if user_intention == UserIntention.SWITCH_OFF:
+                    self._levels[level_index].activate_events()
+                    self._levels[level_index].nullify_progress()
                     button.click()
 
     def _init_levels(self):
@@ -184,7 +186,6 @@ class Game:
                               self._currencies_manager, self._achievement_manager,
                               self._loser_options_buttons, None)  # todo init winner options
             levels.append(level)
-            level.activate_events()  # fixme delete later events should be set only for one level
         return levels
 
     # fixme levels dont have configs for now so dummy verision is used for now
