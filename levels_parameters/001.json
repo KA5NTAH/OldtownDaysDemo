@@ -18,7 +18,7 @@
        "timer_color": [255, 0, 0]}
   },
   "Challenges_time": 10000,
-  "Link_filling_rate": 10,
+  "Link_filling_rate": 1000,
   "Droplets_per_metal_amount": 100,
   "Drops_frequency": 1000,
   "Fails_limit": 10,

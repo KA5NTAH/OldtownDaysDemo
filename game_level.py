@@ -28,6 +28,7 @@ from switch_play_state_command import SwitchPlayStateCommand
 from navigator import Navigator
 from achievement_manager import AchievementManager
 from persistent_objects.currencies_manager import CurrenciesManager
+from game_enums.game_state import GameState
 
 
 # todo implement bonus
@@ -200,6 +201,7 @@ class GameLevel(MouseResponsive, Slide, PersistentObject):
                     if self._fails_count == self._fails_limit:
                         self._controlled_link = None
                         self._robbed_channel_index = None
+                        self._set_looser_buttons()
                         self._navigator.switch_to_play_state(LvlStage.LOSER_OPTIONS)
                 elif event.type in game_constants.EVENT_TYPE_NO_LINK_RUIN_METAL_DICT:
                     metal = game_constants.EVENT_TYPE_NO_LINK_RUIN_METAL_DICT[event.type]
@@ -308,9 +310,10 @@ class GameLevel(MouseResponsive, Slide, PersistentObject):
         self._handle_events()
         if self._navigator.current_level_state == LvlStage.USUAL_PLAY:
             if self._fails_count == self._fails_limit:
-                self._navigator.switch_to_play_state(LvlStage.LOSER_OPTIONS)
+                self._set_looser_buttons()  # todo where to put?
+                self._navigator.switch_to_play_state(LvlStage.LOSER_OPTIONS)  # fixme put in the same method??
             if self._complete_links_count == self._links_count:
-                self._navigator.switch_to_play_state(LvlStage.WINNER_OPTIONS)
+                self._navigator.switch_to_state(GameState.LEVEL_WINNER_OPTIONS)
             self._handle_user_link_actions(self._achievement_manager, self._currencies_manager)
             self._handle_user_coin_actions(self._achievement_manager, self._currencies_manager)
             for coin_index in range(len(self._coins)):
@@ -326,12 +329,9 @@ class GameLevel(MouseResponsive, Slide, PersistentObject):
                 self._refresh_expiring_objects()
                 self._navigator.switch_to_play_state(LvlStage.USUAL_PLAY)
         elif self._navigator.current_level_state == LvlStage.LOSER_OPTIONS:
-            self._set_looser_buttons()
             utils.process_buttons([self._current_bribe_button,
                                    self._current_trial_button,
                                    self._loser_options_buttons["menu"]])
-        elif self._navigator.current_level_state == LvlStage.WINNER_OPTIONS:
-            pass
         elif self._navigator.current_level_state == LvlStage.TRIAL_OF_THE_SEVEN:
             pass
 
@@ -354,8 +354,6 @@ class GameLevel(MouseResponsive, Slide, PersistentObject):
             self._current_trial_button.draw(screen)
             self._current_bribe_button.draw(screen)
             self._loser_options_buttons["menu"].draw(screen)
-        elif self._navigator.current_level_state == LvlStage.WINNER_OPTIONS:
-            screen.fill((0, 255, 0))
 
     def _generate_coin(self):
         """generates coins based on probability distribution = [p1, p2, p3] where:

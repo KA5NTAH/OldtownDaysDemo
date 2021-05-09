@@ -300,7 +300,6 @@ COINS_Y_BOUNDARIES = (COINS_HEIGHT + COINS_EDGE_OFFSET, links_y - COINS_EDGE_OFF
 
 
 
-# --------------------- LEVEL IMAGES -------------------
 # MODE_SELECTION_BUTTONS_INFO.append({"images": images, "position": pos, "state": state})
 # fixme maybe buttons should be initialized by one function Seems like process can standardized
 loser_options_dir = os.path.join(RESOURSES_DIR, "LoserOptionsButtons")
@@ -326,3 +325,17 @@ for folder in os.listdir(loser_options_dir):
         addressing_img = pygame.image.load(os.path.join(loser_options_dir, folder, "addressing.png"))
         images = [idle_img, addressing_img]
     LOSER_BUTTONS_INFO[folder] = {"images": images, "position": loser_buttons_positions[folder]}
+
+
+# WINNER OPTIONS
+# load images
+WINNER_OPTIONS_FOLDER = os.path.join(RESOURSES_DIR, "WinnerOptionsButtons")
+WINNER_OPTIONS_BACKGROUND = pygame.image.load(os.path.join(BACKGROUNDS_DIR, "Winner_options_background.png"))
+back_to_level_images = [pygame.image.load(os.path.join(WINNER_OPTIONS_FOLDER, "back_to_levels", img_name))
+                        for img_name in ("idle.png", "addressing.png")]
+next_level_images = [pygame.image.load(os.path.join(WINNER_OPTIONS_FOLDER, "next_level", img_name))
+                     for img_name in ("idle.png", "addressing.png")]
+WINNER_OPTIONS_INFO = {"back_to_menu": {"images": back_to_level_images,
+                                        "position": [227, 80]},
+                       "next_level": {"images": next_level_images,
+                                      "position": [659, 80]}}

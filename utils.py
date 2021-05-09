@@ -39,7 +39,6 @@ def get_iou(bb1, bb2):
 	return intersection / union
 
 
-# todo should use only this function to init buttons from info dicitonary
 def init_buttons_from_info(button_info, command_creator, mouse_key):
 	buttons = []
 	for button_info in button_info:

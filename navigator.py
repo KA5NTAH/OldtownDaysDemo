@@ -4,6 +4,7 @@ from game_enums.lvl_stage import LvlStage
 
 
 class Navigator:
+    # todo set bonus
     def __init__(self):
         self._current_state = GameState.MENU
         self._state_history = [GameState.EXIT]
@@ -28,6 +29,9 @@ class Navigator:
     def played_level(self):
         return self._played_level
 
+    def increment_level(self):
+        self._played_level += 1
+
     def switch_to_state(self, dst_state):
         self._state_history.append(self._current_state)
         # if we left play state its history should be deleted
@@ -42,10 +46,11 @@ class Navigator:
         self._play_state_history.append(self._current_level_state)
         self._current_level_state = dst_state
 
-    def go_back(self):
+    def go_back(self, steps=1):
         if self._current_state == GameState.PLAY:
             self._play_state_history = []
-        self._current_state = self._state_history.pop(-1)
+        for step in range(steps):
+            self._current_state = self._state_history.pop(-1)
 
     def set_achievement(self, achievement: AchievementsNames):
         self._displayed_achievement = achievement

@@ -20,6 +20,8 @@ from switch_play_state_command import SwitchPlayStateCommand
 from game_enums.lvl_stage import LvlStage
 from game_level import GameLevel
 from state_setback_command import StateSetbackCommand
+from next_level_command import NextLevelCommand
+from winner_back_to_level_command import WinnerBackToLevelCommand
 import utils
 
 
@@ -53,6 +55,7 @@ class Game:
                                                            lambda info: SetLevelCommand(self._navigator, info["lvl_num"]),
                                                            game_constants.MOUSE_KEY)
         self._loser_options_buttons = self._init_loser_options_button()
+        self._winner_options_buttons = self._init_winner_options_buttons()
         # -------------------------- BUTTONS --------------------------
 
         self._locked_level_icon = game_constants.LOCKED_LEVEL_IMAGE
@@ -141,6 +144,18 @@ class Game:
                          "menu": back_to_levels_button}
         return loser_buttons
 
+    def _init_winner_options_buttons(self):
+        next_lvl_button = Button(*game_constants.WINNER_OPTIONS_INFO["next_level"]["images"],
+                                 game_constants.WINNER_OPTIONS_INFO["next_level"]["position"],
+                                 game_constants.MOUSE_KEY,
+                                 NextLevelCommand(self._navigator))
+
+        back_to_levels_button = Button(*game_constants.WINNER_OPTIONS_INFO["back_to_menu"]["images"],
+                                       game_constants.WINNER_OPTIONS_INFO["back_to_menu"]["position"],
+                                       game_constants.MOUSE_KEY,
+                                       WinnerBackToLevelCommand(self._navigator))
+        return [next_lvl_button, back_to_levels_button]
+
     def _init_achievements_info(self):
         achievements_info = {}
         for key, pos in zip(game_constants.ACHIEVEMENTS_IMAGES.keys(), game_constants.ACHIEVEMENT_POSITIONS):
@@ -211,7 +226,10 @@ class Game:
             self._process_achievements_buttons()
         if self._navigator.current_state == GameState.PLAY:
             self._levels[self._navigator.played_level - 1].update()
+        if self._navigator.current_state == GameState.LEVEL_WINNER_OPTIONS:
+            utils.process_buttons(self._winner_options_buttons)
         if self._navigator.current_state == GameState.EXIT:
+            # todo add saving before exit
             sys.exit()
 
     def draw(self, screen):
@@ -233,6 +251,9 @@ class Game:
             self._draw_level_buttons(screen)
         if self._navigator.current_state == GameState.PLAY:
             self._levels[self._navigator.played_level - 1].draw(screen)
+        if self._navigator.current_state == GameState.LEVEL_WINNER_OPTIONS:
+            screen.blit(game_constants.WINNER_OPTIONS_BACKGROUND, (0, 0))
+            self._draw_buttons(self._winner_options_buttons, screen)
 
     def run(self):
         while True:

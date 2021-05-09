@@ -11,4 +11,5 @@ class GameState(Enum):
     EDUCATION = auto()
     ACHIEVEMENTS = auto()
     ACHIEVEMENT_VIEW = auto()
+    LEVEL_WINNER_OPTIONS = auto()
     EXIT = auto()
