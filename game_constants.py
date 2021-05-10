@@ -94,7 +94,6 @@ buttons_x = np.empty(len(MENU_BUTTONS_ORDER))
 buttons_x.fill(MENU_BUTTON_X_OFFSET)
 buttons_y = np.arange(len(MENU_BUTTONS_ORDER)) * (MENU_BUTTON_H + MENU_BUTTON_Y_GAP) + MENU_BUTTON_Y_OFFSET
 MENU_BUTTONS_POSITIONS = np.vstack((buttons_x, buttons_y)).T
-print(f"MENU_BUTTONS_POSITIONS = {MENU_BUTTONS_POSITIONS}")
 for state, pos in zip(MENU_BUTTONS_ORDER, MENU_BUTTONS_POSITIONS):
     folder = os.path.join(MENU_BUTTONS_DIR, state.name)
     idle_image = pygame.image.load(os.path.join(folder, 'idle.png'))
@@ -133,7 +132,6 @@ ACHIEVEMENTS_IMAGES = {}
 for achievement in AchievementsNames:
     ach_dir = os.path.join(ACHIEVEMENTS_DIR, achievement.name)
     if os.path.exists(ach_dir):
-        print(f'LOAD ACHIEVEMNT FROM {ach_dir}')
         small_icon_locked = pygame.image.load(os.path.join(ach_dir, 'SmallIconGs.png'))
         small_icon_unlocked = pygame.image.load(os.path.join(ach_dir, 'SmallIcon.png'))
         big_icon_locked = pygame.image.load(os.path.join(ach_dir, 'BigIconGs.png'))
@@ -339,3 +337,15 @@ WINNER_OPTIONS_INFO = {"back_to_menu": {"images": back_to_level_images,
                                         "position": [227, 80]},
                        "next_level": {"images": next_level_images,
                                       "position": [659, 80]}}
+
+# PROGRESS BARS
+WINNING_BAR_POSITION = (1115, 397)
+LOSING_BAR_POSITION = (1158, 397)
+LEVEL_BARS_INNER_PART_OFFSET = (5, 5)
+PROGRESS_BAR_FOLDER = os.path.join(RESOURSES_DIR, "ProgressBars")
+PROGRESS_BAR_IMAGES = {}
+for bar_name in ("winning", "losing"):
+    bar_folder = os.path.join(PROGRESS_BAR_FOLDER, bar_name)
+    PROGRESS_BAR_IMAGES[bar_name] = [pygame.image.load(os.path.join(bar_folder, "background.png")),
+                                     pygame.image.load(os.path.join(bar_folder, "empty.png")),
+                                     pygame.image.load(os.path.join(bar_folder, "filled.png"))]

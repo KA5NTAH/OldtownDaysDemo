@@ -200,7 +200,7 @@ class Game:
         for cfg_path, persistent_cfg_path in zip(configs_paths, persistent_info_paths):
             level = GameLevel(game_constants.MOUSE_KEY, persistent_cfg_path, cfg_path, self._navigator,
                               self._currencies_manager, self._achievement_manager,
-                              self._loser_options_buttons, None)  # todo init winner options
+                              self._loser_options_buttons)
             levels.append(level)
         return levels
 

@@ -29,35 +29,25 @@ from navigator import Navigator
 from achievement_manager import AchievementManager
 from persistent_objects.currencies_manager import CurrenciesManager
 from game_enums.game_state import GameState
+from progress_bar import ProgressBar
 
 
-# todo implement bonus
 # todo finish draw functions: draw fail/winning progress
-# todo add winner and loser options
-# todo add trial of the seven
-# todo add buttons for winner/loser options + backgrounds
-# todo add new command ------ DONE
-# todo add play state support in navigator and level should interact with state through navigator --- DOING
-# fixme maybe currencies manager and achievement manager should be attibutes of the game level PROBABLY
-# todo add images for buttons
+# todo add trial of the sevens
 # todo add images for progress
 # todo add bonus interaction and images for bonus
-# todo init buttons like this
-# def __init__(self, idle_image, addressing_image, position, mouse_button, command: Command):
 
 
 class GameLevel(MouseResponsive, Slide, PersistentObject):
     def __init__(self, mouse_key: int, persistent_cfg_path: str, level_info_cfg_path: str, navigator: Navigator,
                  currencies_manager: CurrenciesManager, achievement_manager: AchievementManager,
-                 loser_options_buttons, winner_options_buttons):
+                 loser_options_buttons):
         super().__init__(mouse_key)
         PersistentObject.__init__(self, persistent_cfg_path)
         self._level_parameters_cfg_path = level_info_cfg_path
         self._availability_info = {"unlocked": False}
         self._init_from_file()
         self._navigator = navigator
-
-        self._winner_options_buttons = winner_options_buttons
         self._currencies_manager = currencies_manager
         self._achievement_manager = achievement_manager
         # CONFIG PARAMETERS
@@ -74,6 +64,19 @@ class GameLevel(MouseResponsive, Slide, PersistentObject):
         # CONFIG PARAMETERS
         self._init_from_config()
 
+        # init progress bars
+        # def __init__(self, bg_img, empty_part, filled_part, vertical_orientation: bool, inner_part_offset: tuple,
+        #              pos: tuple, limit: int):
+        self._win_progress_bar = ProgressBar(*game_constants.PROGRESS_BAR_IMAGES["winning"],
+                                             True,
+                                             game_constants.LEVEL_BARS_INNER_PART_OFFSET,
+                                             game_constants.WINNING_BAR_POSITION,
+                                             len(self._metals))
+        self._lose_progress_bar = ProgressBar(*game_constants.PROGRESS_BAR_IMAGES["losing"],
+                                             True,
+                                             game_constants.LEVEL_BARS_INNER_PART_OFFSET,
+                                             game_constants.LOSING_BAR_POSITION,
+                                             self._fails_limit)
         # set progress to zero
         self._robbed_channel_index = None
         self._fails_count = 0
@@ -105,6 +108,8 @@ class GameLevel(MouseResponsive, Slide, PersistentObject):
         self._links_count = len(self._metals)
         self._complete_links_dict = dict.fromkeys(self._metals, False)
         self._complete_links_count = 0
+        self._win_progress_bar.nullify_progress()
+        self._lose_progress_bar.nullify_progress()
         # init channels again
         self._init_channels()
         self._init_droplets_deque()
@@ -153,9 +158,7 @@ class GameLevel(MouseResponsive, Slide, PersistentObject):
                 self._metal_challenge_dict[metal] = challenge
 
     def _init_from_file(self):
-        print("init from file")
         if not os.path.exists(self._config_path):
-            print("dump into file ")
             self.dump_into_file()
         else:
             with open(self._config_path) as file:
@@ -181,6 +184,18 @@ class GameLevel(MouseResponsive, Slide, PersistentObject):
         with open(self._config_path, 'w') as file:
             json.dump(self._availability_info, file)
 
+    def _record_link_filling(self):
+        self._complete_links_count += 1
+        self._win_progress_bar.increment_progress()
+
+    def _record_fail(self):
+        self._fails_count += 1
+        self._lose_progress_bar.increment_progress()
+
+    def _switch_to_loser_options(self):
+        self._set_looser_buttons()
+        self._navigator.switch_to_play_state(LvlStage.LOSER_OPTIONS)
+
     def activate_events(self):
         pygame.time.set_timer(game_constants.GENERATE_DROP_EVENT.type, self._drops_frequency)
         pygame.time.set_timer(game_constants.GENERATE_COIN_EVENT.type, self._coins_frequency)
@@ -197,19 +212,17 @@ class GameLevel(MouseResponsive, Slide, PersistentObject):
                 elif event.type == game_constants.GENERATE_DROP_EVENT.type:
                     self._set_drop_at_random_channel()
                 elif event.type == game_constants.RUINED_DROP_EVENT.type:
-                    self._fails_count += 1
+                    self._record_fail()
                     if self._fails_count == self._fails_limit:
                         self._controlled_link = None
                         self._robbed_channel_index = None
-                        self._set_looser_buttons()
-                        self._navigator.switch_to_play_state(LvlStage.LOSER_OPTIONS)
+                        self._switch_to_loser_options()
                 elif event.type in game_constants.EVENT_TYPE_NO_LINK_RUIN_METAL_DICT:
                     metal = game_constants.EVENT_TYPE_NO_LINK_RUIN_METAL_DICT[event.type]
                     if not self._complete_links_dict[metal]:
-                        self._fails_count += 1
+                        self._record_fail()
                 elif event.type in game_constants.LINK_IS_DONE_EVENTS_TYPES:
-                    self._complete_links_count += 1
-                    print(f'COMPLETED : {self._complete_links_count}')
+                    self._record_link_filling()
                     metal = game_constants.EVENT_TYPE_METAL_DICT[event.type]
                     self._complete_links_dict[metal] = True
 
@@ -236,7 +249,6 @@ class GameLevel(MouseResponsive, Slide, PersistentObject):
                 if link_intention == UserIntention.SWITCH_ON:
                     if self._channels[channel_num].link_stage == LinkStage.CHALLENGE_PROPOSAL:
                         metal = self._channels[channel_num].link_metal
-                        print(f'CHALLENGE : {metal}')
                         self._current_challenge = self._metal_challenge_dict[metal]
                         self._current_challenge.refresh_clock()
                         self._navigator.switch_to_play_state(LvlStage.CHALLENGE)
@@ -310,8 +322,7 @@ class GameLevel(MouseResponsive, Slide, PersistentObject):
         self._handle_events()
         if self._navigator.current_level_state == LvlStage.USUAL_PLAY:
             if self._fails_count == self._fails_limit:
-                self._set_looser_buttons()  # todo where to put?
-                self._navigator.switch_to_play_state(LvlStage.LOSER_OPTIONS)  # fixme put in the same method??
+                self._switch_to_loser_options()
             if self._complete_links_count == self._links_count:
                 self._navigator.switch_to_state(GameState.LEVEL_WINNER_OPTIONS)
             self._handle_user_link_actions(self._achievement_manager, self._currencies_manager)
@@ -325,7 +336,6 @@ class GameLevel(MouseResponsive, Slide, PersistentObject):
             if success is not None:
                 if success:
                     self._handle_successful_challenge()
-                print(f'BACK TO LEVEL with {success}')
                 self._refresh_expiring_objects()
                 self._navigator.switch_to_play_state(LvlStage.USUAL_PLAY)
         elif self._navigator.current_level_state == LvlStage.LOSER_OPTIONS:
@@ -341,6 +351,8 @@ class GameLevel(MouseResponsive, Slide, PersistentObject):
     def draw(self, screen):
         if self._navigator.current_level_state == LvlStage.USUAL_PLAY:
             screen.blit(self._level_background, (0, 0))
+            self._win_progress_bar.draw(screen)
+            self._lose_progress_bar.draw(screen)
             for coin in self._coins:
                 coin.draw(screen)
             for channel in self._channels:
