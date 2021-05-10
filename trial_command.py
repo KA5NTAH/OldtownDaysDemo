@@ -12,5 +12,5 @@ class TrialCommand(Command):
         self._trial_cost = trial_cost
 
     def execute(self):
-        self._navigator.switch_to_play_state(LvlStage.USUAL_PLAY)
+        self._navigator.switch_to_play_state(LvlStage.GENERATE_TRIAL_RESULT)  # fixme it this relevant
         self._currencies_manager.spend_coins(CoinsKinds.FAITH_COIN, self._trial_cost)

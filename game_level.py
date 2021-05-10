@@ -30,7 +30,8 @@ from achievement_manager import AchievementManager
 from persistent_objects.currencies_manager import CurrenciesManager
 from game_enums.game_state import GameState
 from progress_bar import ProgressBar
-
+from responsive_objects.button import Button
+from accept_trial_result_command import AcceptTrialResultCommand
 
 # todo finish draw functions: draw fail/winning progress
 # todo add trial of the sevens
@@ -84,7 +85,7 @@ class GameLevel(MouseResponsive, Slide, PersistentObject):
         self._complete_links_dict = dict.fromkeys(self._metals, False)
         self._complete_links_count = 0
         self._coins = []
-        # ------------------ BACKGROUNDS --------------
+        # --------------------------
         self._level_background = game_constants.LVL_BACKGROUND
         self._loser_options_background = game_constants.LOSER_OPTIONS_BACKGROUND
         # ------------------ BACKGROUNDS --------------
@@ -97,9 +98,23 @@ class GameLevel(MouseResponsive, Slide, PersistentObject):
         self._current_trial_button = None
         self._current_bribe_button = None
         # WINNER OPTIONS
-
         self.nullify_progress()
         self._relative_movement = pygame.mouse.get_rel()
+        # TRIAL OF THE SEVEN
+        self._generated_trial_result = None
+        self._trial_fathers_approval = False  # defines which way turned out fathers judgement
+        self._result_trial_button = None
+
+    def _get_result_trial_buttons(self):
+        trial_result_buttons = {}
+        for bonus in Bonuses:
+            # def __init__(self, idle_image, addressing_image, position, mouse_button, command: Command):
+            button = Button(*game_constants.TRIAL_BUTTON_IMAGES,
+                            game_constants.TRIAL_BUTTON_POSITION,
+                            game_constants.MOUSE_KEY,
+                            AcceptTrialResultCommand(self._navigator, self._currencies_manager, bonus, self._trial_fathers_approval))
+            trial_result_buttons[bonus] = button
+        return trial_result_buttons
 
     def nullify_progress(self):
         # channel from which player get controlled link
@@ -342,9 +357,20 @@ class GameLevel(MouseResponsive, Slide, PersistentObject):
             utils.process_buttons([self._current_bribe_button,
                                    self._current_trial_button,
                                    self._loser_options_buttons["menu"]])
-        elif self._navigator.current_level_state == LvlStage.TRIAL_OF_THE_SEVEN:
-            pass
-
+        elif self._navigator.current_level_state == LvlStage.GENERATE_TRIAL_RESULT:
+            """ Init all info required from trial """
+            self._generated_trial_result = rd.choice(list(Bonuses))
+            if self._generated_trial_result == Bonuses.FATHER:
+                self._trial_fathers_approval = self._complete_links_count / self._links_count >= game_constants.FATHERS_JUDGEMENT_THRD
+            """ if we got mothers mercy then we should decrement fail count, elsewise we will get into loser options 
+            immediately after we have been restored to the game """
+            if self._generated_trial_result == Bonuses.MOTHER:
+                self._fails_count -= 1
+            self._result_trial_button = self._get_result_trial_buttons()
+            self._navigator.switch_to_play_state(LvlStage.TRIAL_OF_THE_SEVEN_RESULT)
+        elif self._navigator.current_level_state == LvlStage.TRIAL_OF_THE_SEVEN_RESULT:
+            """ process correct button input """
+            utils.process_buttons([self._result_trial_button[self._generated_trial_result]])
         # discard expired coins
         # self._coins = [c for c in self._coins if c.is_still_alive()]
 
@@ -366,6 +392,14 @@ class GameLevel(MouseResponsive, Slide, PersistentObject):
             self._current_trial_button.draw(screen)
             self._current_bribe_button.draw(screen)
             self._loser_options_buttons["menu"].draw(screen)
+        elif self._navigator.current_level_state == LvlStage.TRIAL_OF_THE_SEVEN_RESULT:
+            if self._generated_trial_result != Bonuses.FATHER:
+                screen.blit(game_constants.TRIAL_BACKGROUNDS[self._generated_trial_result], (0, 0))
+            else:
+                father_bg_key = "positive" if self._trial_fathers_approval else "negative"
+                father_bg = game_constants.TRIAL_BACKGROUNDS[self._generated_trial_result][father_bg_key]
+                screen.blit(father_bg, (0, 0))
+            self._result_trial_button[self._generated_trial_result].draw(screen)
 
     def _generate_coin(self):
         """generates coins based on probability distribution = [p1, p2, p3] where:
@@ -388,29 +422,6 @@ class GameLevel(MouseResponsive, Slide, PersistentObject):
 
 
 if __name__ == "__main__":
-    test_level = True
-    if test_level:
-        pygame.init()
-        persistent_info = "E:\\develop\\OldtownDays\\persistent_info\\levels_info\\001.json"
-        level_parameters = "E:\\develop\\OldtownDays\\levels_parameters\\001.json"
-        navigator = Navigator()
-        from game_enums.game_state import GameState
-        navigator.switch_to_state(GameState.PLAY)
-        Lvl = GameLevel(game_constants.MOUSE_KEY, persistent_info, level_parameters, navigator)
-        Lvl.activate_events()
-        screen = pygame.display.set_mode((1200, 680))
-        am = AchievementManager("am.json")
-        cm = CurrenciesManager("cm.json")
-        while True:
-            events = pygame.event.get((pygame.QUIT, ))
-            for event in events:
-                if event.type == pygame.QUIT:
-                    sys.exit()
-            screen.fill((255, 255, 255))
-            # update block
-            Lvl.update()
-            # draw block
-            Lvl.draw(screen)
-            pygame.display.flip()
+    pass
 
 

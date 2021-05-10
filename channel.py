@@ -84,6 +84,8 @@ class Channel:
 			drop.draw(screen)
 		if self._link is not None:
 			self._link.draw(screen)
+		else:
+			screen.blit(game_constants.EMPTY_LINK_FILLER, self._link_rect)
 
 	def yield_link(self):
 		link = self._link

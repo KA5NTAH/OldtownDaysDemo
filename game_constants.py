@@ -349,3 +349,23 @@ for bar_name in ("winning", "losing"):
     PROGRESS_BAR_IMAGES[bar_name] = [pygame.image.load(os.path.join(bar_folder, "background.png")),
                                      pygame.image.load(os.path.join(bar_folder, "empty.png")),
                                      pygame.image.load(os.path.join(bar_folder, "filled.png"))]
+
+
+GENERAL_FOLDER = os.path.join(RESOURSES_DIR, "General")
+EMPTY_LINK_FILLER = pygame.image.load(os.path.join(GENERAL_FOLDER, "empty_link_filler.png"))
+
+
+# TRIAL OF THE SEVEN BACKGROUNDS
+TRIAL_BG_FOLDER = os.path.join(RESOURSES_DIR, "TrialBackgrounds")
+TRIAL_BACKGROUNDS = {}
+for god in Bonuses:
+    if god == Bonuses.FATHER:
+        TRIAL_BACKGROUNDS[god] = {"positive": pygame.image.load(os.path.join(TRIAL_BG_FOLDER, f"{god.name}_POS.png")),
+                                  "negative": pygame.image.load(os.path.join(TRIAL_BG_FOLDER, f"{god.name}_NEG.png"))}
+    else:
+        TRIAL_BACKGROUNDS[god] = pygame.image.load(os.path.join(TRIAL_BG_FOLDER, f"{god.name}.png"))
+
+TRIAL_BUTTON_POSITION = (60, 574)
+TRIAL_BUTTON_FOLDER = os.path.join(RESOURSES_DIR, "TrialButton")
+TRIAL_BUTTON_IMAGES = [pygame.image.load(os.path.join(TRIAL_BUTTON_FOLDER, "idle.png")),
+                       pygame.image.load(os.path.join(TRIAL_BUTTON_FOLDER, "addressing.png"))]

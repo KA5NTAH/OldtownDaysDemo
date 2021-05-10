@@ -1,17 +1,18 @@
 from game_enums.game_state import GameState
 from game_enums.achievements_names import AchievementsNames
 from game_enums.lvl_stage import LvlStage
+from game_enums.bonuses import Bonuses
 
 
 class Navigator:
-    # todo set bonus
     def __init__(self):
         self._current_state = GameState.MENU
         self._state_history = [GameState.EXIT]
-        self._play_state_history = []
+        self._play_state_history = []  # fixme is this necessary
         self._played_level = None
         self._current_level_state = LvlStage.USUAL_PLAY
         self._displayed_achievement = None
+        self._bonus = None
 
     @property
     def current_state(self):
@@ -57,3 +58,6 @@ class Navigator:
     
     def set_level(self, level_num: int):
         self._played_level = level_num
+
+    def set_bonus(self, bonus: Bonuses):
+        self._bonus = bonus

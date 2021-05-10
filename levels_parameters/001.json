@@ -21,7 +21,7 @@
   "Link_filling_rate": 1000,
   "Droplets_per_metal_amount": 100,
   "Drops_frequency": 1000,
-  "Fails_limit": 10,
+  "Fails_limit": 1,
   "Challenge_wait_time": 1000,
   "Drops_speed": 1,
   "Coins_frequency": 3000,

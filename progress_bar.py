@@ -12,12 +12,10 @@ class ProgressBar:
         self._limit = limit
         self._inner_part_pos = (self._position[0] + self._inner_part_offset[0],
                                 self._position[1] + self._inner_part_offset[1])
-        print(self._inner_part_pos)
         if self._vertical_orientation:
             self._filling_rate = self._inner_h / limit
         else:
             self._filling_rate = self._inner_w / limit
-        print(self._filling_rate)
 
     def increment_progress(self):
         self._progress = min(self._progress + 1, self._limit)
@@ -36,7 +34,6 @@ class ProgressBar:
             filled_part = self._filling_rate * self._progress
             surface_y = inner_part_bottom_y - filled_part
             surface_y = int(surface_y)
-            # print(self._filling_rate, surface_y, self._progress, inner_part_bottom)
             A = (0, 0)
             B = (self._inner_w, self._inner_h - filled_part)
             C = (0, self._inner_h - filled_part)
