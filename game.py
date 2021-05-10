@@ -55,7 +55,7 @@ class Game:
                                                            lambda info: SetLevelCommand(self._navigator, info["lvl_num"]),
                                                            game_constants.MOUSE_KEY)
         self._loser_options_buttons = self._init_loser_options_button()
-        self._winner_options_buttons = self._init_winner_options_buttons()
+        self._winner_options_buttons = self._init_winner_options_buttons()   # next_lvl_button, back_to_levels_button
         # -------------------------- BUTTONS --------------------------
 
         self._locked_level_icon = game_constants.LOCKED_LEVEL_IMAGE
@@ -64,6 +64,7 @@ class Game:
 
         # levels
         self._levels = self._init_levels()
+        self._level_number = len(self._levels)
 
     def _draw_buttons(self, buttons, screen):
         for b in buttons:
@@ -227,7 +228,10 @@ class Game:
         if self._navigator.current_state == GameState.PLAY:
             self._levels[self._navigator.played_level - 1].update()
         if self._navigator.current_state == GameState.LEVEL_WINNER_OPTIONS:
-            utils.process_buttons(self._winner_options_buttons)
+            if self._navigator.played_level == self._level_number:
+                utils.process_buttons([self._winner_options_buttons[1]])
+            else:
+                utils.process_buttons(self._winner_options_buttons)
         if self._navigator.current_state == GameState.EXIT:
             # todo add saving before exit
             sys.exit()
@@ -253,7 +257,11 @@ class Game:
             self._levels[self._navigator.played_level - 1].draw(screen)
         if self._navigator.current_state == GameState.LEVEL_WINNER_OPTIONS:
             screen.blit(game_constants.WINNER_OPTIONS_BACKGROUND, (0, 0))
-            self._draw_buttons(self._winner_options_buttons, screen)
+            if self._navigator.played_level == self._level_number:
+                # draw only Back to menu button
+                self._winner_options_buttons[1].draw(screen)
+            else:
+                self._draw_buttons(self._winner_options_buttons, screen)
 
     def run(self):
         while True:
