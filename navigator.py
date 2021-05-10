@@ -8,6 +8,8 @@ class Navigator:
     def __init__(self):
         self._current_state = GameState.MENU
         self._state_history = [GameState.EXIT]
+        """ some states should not be in history """
+        self._forbidden_to_be_in_history = [GameState.LEVEL_WINNER_OPTIONS]
         self._play_state_history = []  # fixme is this necessary
         self._played_level = None
         self._current_level_state = LvlStage.USUAL_PLAY
@@ -34,7 +36,9 @@ class Navigator:
         self._played_level += 1
 
     def switch_to_state(self, dst_state):
-        self._state_history.append(self._current_state)
+        """ do not allow forbidden states and two identical states in a row"""
+        if self._current_state not in self._forbidden_to_be_in_history and self._current_state != self._state_history[-1]:
+            self._state_history.append(self._current_state)
         # if we left play state its history should be deleted
         if self._current_state == GameState.PLAY:
             self._play_state_history = []

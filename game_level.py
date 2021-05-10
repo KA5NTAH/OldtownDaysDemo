@@ -43,7 +43,7 @@ class GameLevel(MouseResponsive, Slide, PersistentObject):
     def __init__(self, mouse_key: int, persistent_cfg_path: str, level_info_cfg_path: str, navigator: Navigator,
                  currencies_manager: CurrenciesManager, achievement_manager: AchievementManager,
                  loser_options_buttons):
-        super().__init__(mouse_key)
+        # super().__init__(mouse_key)
         PersistentObject.__init__(self, persistent_cfg_path)
         self._level_parameters_cfg_path = level_info_cfg_path
         self._availability_info = {"unlocked": False}
@@ -198,6 +198,13 @@ class GameLevel(MouseResponsive, Slide, PersistentObject):
     def dump_into_file(self):
         with open(self._config_path, 'w') as file:
             json.dump(self._availability_info, file)
+
+    def is_available(self):
+        return self._availability_info["unlocked"]
+
+    def unlock(self):
+        self._availability_info["unlocked"] = True
+        self.dump_into_file()
 
     def _record_link_filling(self):
         self._complete_links_count += 1

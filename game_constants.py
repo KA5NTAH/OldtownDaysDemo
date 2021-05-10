@@ -265,11 +265,15 @@ for metal in Metals:
 links_y = 533
 five_links_x = np.arange(5) * 212 + 40
 five_links_arrangement = np.vstack((five_links_x, np.ones((5,)) * links_y)).T.astype(np.int32)
+four_links_arrangement = five_links_arrangement[:-1]
+three_links_arrangement = five_links_arrangement[1:-1]
+two_links_arrangement = five_links_arrangement[[1, 3]]
+one_link_arrangement = np.array([five_links_arrangement[[2]]])
 LINKS_COORDINATES = {
-    1: [],
-    2: [],
-    3: [],
-    4: [],
+    1: one_link_arrangement,
+    2: two_links_arrangement,
+    3: three_links_arrangement,
+    4: four_links_arrangement,
     5: five_links_arrangement
 }
 

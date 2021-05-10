@@ -64,6 +64,7 @@ class Game:
 
         # levels
         self._levels = self._init_levels()
+        self._levels[0].unlock()
         self._level_number = len(self._levels)
 
     def _draw_buttons(self, buttons, screen):
@@ -175,7 +176,8 @@ class Game:
 
     def _draw_level_buttons(self, screen):
         levels_availability = self._get_levels_availability()
-        for button, is_available in zip(self._level_buttons, levels_availability):
+        # fixme now there is more buttons than there is levels
+        for button, is_available in zip(self._level_buttons[:self._level_number], levels_availability[:self._level_number]):
             if is_available:
                 button.draw(screen)
             else:
@@ -205,11 +207,11 @@ class Game:
             levels.append(level)
         return levels
 
-    # fixme levels dont have configs for now so dummy version is used for now
     def _get_levels_availability(self):
-        dummy = [False] * 100
-        dummy[0] = True
-        return dummy
+        availability = []
+        for level in self._levels:
+            availability.append(level.is_available())
+        return availability
 
     def update(self):
         # detect escape command
@@ -228,12 +230,18 @@ class Game:
         if self._navigator.current_state == GameState.PLAY:
             self._levels[self._navigator.played_level - 1].update()
         if self._navigator.current_state == GameState.LEVEL_WINNER_OPTIONS:
+            next_level_num = self._navigator.played_level + 1
+            if next_level_num < self._level_number:
+                self._levels[next_level_num - 1].unlock()
             if self._navigator.played_level == self._level_number:
-                utils.process_buttons([self._winner_options_buttons[1]])
+                utils.process_buttons([self._winner_options_buttons[1]])  # no next level allow only return to menu
             else:
                 utils.process_buttons(self._winner_options_buttons)
         if self._navigator.current_state == GameState.EXIT:
-            # todo add saving before exit
+            self._currencies_manager.dump_into_file()
+            self._achievement_manager.dump_into_file()
+            for level in self._levels:
+                level.dump_into_file()
             sys.exit()
 
     def draw(self, screen):
