@@ -30,6 +30,7 @@ ACHIEVEMENTS_INFO_PATH = os.path.join(PERSISTENT_INFO_DIR, "achievement_info.jso
 CURRENCIES_INFO_PATH = os.path.join(PERSISTENT_INFO_DIR, "currencies_info.json")
 LEVELS_CONFIGS_PATH = os.path.join(SCRIPT_DIR, "levels_parameters")
 PERSISTENT_LEVEL_INFO_PATH = os.path.join(PERSISTENT_INFO_DIR, "levels_info")
+CURRENCIES_MANAGER_DIR = os.path.join(RESOURSES_DIR, "CurrenciesManager")
 # GAME CONSTANTS
 MOUSE_KEY = 0
 LINKS_SWAP_THRD = 0.2
@@ -373,3 +374,8 @@ TRIAL_BUTTON_POSITION = (60, 574)
 TRIAL_BUTTON_FOLDER = os.path.join(RESOURSES_DIR, "TrialButton")
 TRIAL_BUTTON_IMAGES = [pygame.image.load(os.path.join(TRIAL_BUTTON_FOLDER, "idle.png")),
                        pygame.image.load(os.path.join(TRIAL_BUTTON_FOLDER, "addressing.png"))]
+
+# Currencies Manager
+TARG_COIN_MINIATURE = pygame.image.load(os.path.join(CURRENCIES_MANAGER_DIR, "targ_miniature.png"))
+FAITH_COIN_MINIATURE = pygame.image.load(os.path.join(CURRENCIES_MANAGER_DIR, "faith_miniature.png"))
+CURRENCIES_MANAGER_BG = pygame.image.load(os.path.join(CURRENCIES_MANAGER_DIR, "bg.png"))

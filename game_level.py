@@ -384,6 +384,7 @@ class GameLevel(MouseResponsive, Slide, PersistentObject):
     def draw(self, screen):
         if self._navigator.current_level_state == LvlStage.USUAL_PLAY:
             screen.blit(self._level_background, (0, 0))
+            self._currencies_manager.draw(screen)
             self._win_progress_bar.draw(screen)
             self._lose_progress_bar.draw(screen)
             for coin in self._coins:
