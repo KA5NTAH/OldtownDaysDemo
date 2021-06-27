@@ -108,11 +108,10 @@ class GameLevel(MouseResponsive, Slide, PersistentObject):
     def _get_result_trial_buttons(self):
         trial_result_buttons = {}
         for bonus in Bonuses:
-            # def __init__(self, idle_image, addressing_image, position, mouse_button, command: Command):
             button = Button(*game_constants.TRIAL_BUTTON_IMAGES,
                             game_constants.TRIAL_BUTTON_POSITION,
                             game_constants.MOUSE_KEY,
-                            AcceptTrialResultCommand(self._navigator, self._currencies_manager, bonus, self._trial_fathers_approval))
+                            AcceptTrialResultCommand(self._navigator, self._currencies_manager, bonus, self._trial_fathers_approval, self))
             trial_result_buttons[bonus] = button
         return trial_result_buttons
 
@@ -215,6 +214,7 @@ class GameLevel(MouseResponsive, Slide, PersistentObject):
         self._lose_progress_bar.increment_progress()
 
     def _switch_to_loser_options(self):
+        self.deactivate_events()
         self._set_looser_buttons()
         self._navigator.switch_to_play_state(LvlStage.LOSER_OPTIONS)
 

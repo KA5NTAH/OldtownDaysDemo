@@ -27,6 +27,16 @@ import utils
 
 # fixme completness should be taken only once player enters achievement window NOW it is taken on every frame
 
+#  todo
+"""
+1) fix event queue
+2) draw coins info
+3) configure all challenges
+4) draw info about current 7 bonus
+5) test correct work of all trial outcomes
+6) draw achievements progress bar 
+"""
+
 
 class Game:
     def __init__(self):
@@ -217,6 +227,9 @@ class Game:
         # detect escape command
         go_back = self._roll_back_button.get_user_intention_and_update_track() == UserIntention.SWITCH_OFF
         if go_back:
+            """if we return back from the game Current level events must be deactivated"""
+            if self._navigator.current_state == GameState.PLAY:
+                self._levels[self._navigator.played_level - 1].deactivate_events()
             self._navigator.go_back()
         # update corresponding to current state
         if self._navigator.current_state == GameState.MENU:
