@@ -13,6 +13,7 @@ class Navigator:
         self._play_state_history = []  # fixme is this necessary
         self._played_level = None
         self._current_level_state = LvlStage.USUAL_PLAY
+        self.current_education_step = 0
         self._displayed_achievement = None
         self._bonus = None
 

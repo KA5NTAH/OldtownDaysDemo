@@ -22,6 +22,9 @@ from game_level import GameLevel
 from state_setback_command import StateSetbackCommand
 from next_level_command import NextLevelCommand
 from winner_back_to_level_command import WinnerBackToLevelCommand
+from education_forward_command import EducationalForwardCommand
+from education_back_command import EducationBackCommand
+from responsive_objects.keyboard_button import KeyboardButton
 import utils
 
 
@@ -29,12 +32,14 @@ import utils
 
 #  todo
 """
-1) fix event queue
-2) draw coins info
-3) configure all challenges
-4) draw info about current 7 bonus
+1) fix event queue - done
+2) draw coins info - done
+3) configure all challenges - later 
+4) draw info about current 7 bonus - must do
 5) test correct work of all trial outcomes
-6) draw achievements progress bar 
+6) draw achievements progress bar
+7) add infinite mod
+8) redo images for trial of the seven 
 """
 
 
@@ -76,6 +81,8 @@ class Game:
         self._levels = self._init_levels()
         self._levels[0].unlock()
         self._level_number = len(self._levels)
+        self.education_forward = KeyboardButton(pygame.K_RIGHT, EducationalForwardCommand(self._navigator))
+        self.education_back = KeyboardButton(pygame.K_LEFT, EducationBackCommand(self._navigator))
 
     def _draw_buttons(self, buttons, screen):
         for b in buttons:
@@ -230,10 +237,14 @@ class Game:
             """if we return back from the game Current level events must be deactivated"""
             if self._navigator.current_state == GameState.PLAY:
                 self._levels[self._navigator.played_level - 1].deactivate_events()
+            if self._navigator.current_state == GameState.EDUCATION:
+                self._navigator.current_education_step = 0
             self._navigator.go_back()
         # update corresponding to current state
         if self._navigator.current_state == GameState.MENU:
             utils.process_buttons(self._menu_buttons)
+        if self._navigator.current_state == GameState.EDUCATION:
+            utils.process_buttons([self.education_forward, self.education_back])
         if self._navigator.current_state == GameState.GAME_MODE_CHOOSING:
             utils.process_buttons(self._game_choosing_buttons)
         if self._navigator.current_state == GameState.LEVEL_CHOOSING:
@@ -261,6 +272,16 @@ class Game:
         if self._navigator.current_state == GameState.MENU:
             screen.blit(self._menu_bg, (0, 0))
             self._draw_buttons(self._menu_buttons, screen)
+        if self._navigator.current_state == GameState.EDUCATION:
+            current_step = self._navigator.current_education_step
+            screen.blit(game_constants.EDUCATION_IMAGES[current_step], (0, 0))
+            for i, coord in enumerate(game_constants.EDUCATIONAL_PROGRESS_COORD):
+                if i == current_step:
+                    pygame.draw.circle(screen, game_constants.EDUCATION_ACTIVE_COLOR, coord,
+                                       game_constants.EDUCATIONAL_PROGRESS_RAD)
+                else:
+                    pygame.draw.circle(screen, game_constants.EDUCATION_NON_ACTIVE_COLOR, coord,
+                                       game_constants.EDUCATIONAL_PROGRESS_RAD)
         if self._navigator.current_state == GameState.GAME_MODE_CHOOSING:
             screen.blit(self._mode_choosing_bg, (0, 0))
             self._draw_buttons(self._game_choosing_buttons, screen)
@@ -273,6 +294,7 @@ class Game:
             self._display_achievement(screen, ach_name)
         if self._navigator.current_state == GameState.LEVEL_CHOOSING:
             screen.blit(self._level_choosing_bg, (0, 0))
+            self._currencies_manager.draw(screen)
             self._draw_level_buttons(screen)
         if self._navigator.current_state == GameState.PLAY:
             self._levels[self._navigator.played_level - 1].draw(screen)
