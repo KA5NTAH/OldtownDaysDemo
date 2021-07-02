@@ -42,7 +42,7 @@ from accept_trial_result_command import AcceptTrialResultCommand
 class GameLevel(MouseResponsive, Slide, PersistentObject):
     def __init__(self, mouse_key: int, persistent_cfg_path: str, level_info_cfg_path: str, navigator: Navigator,
                  currencies_manager: CurrenciesManager, achievement_manager: AchievementManager,
-                 loser_options_buttons):
+                 loser_options_buttons, stranger_challenge):
         # super().__init__(mouse_key)
         PersistentObject.__init__(self, persistent_cfg_path)
         self._level_parameters_cfg_path = level_info_cfg_path
@@ -90,6 +90,8 @@ class GameLevel(MouseResponsive, Slide, PersistentObject):
         self._loser_options_background = game_constants.LOSER_OPTIONS_BACKGROUND
         # ------------------ BACKGROUNDS --------------
 
+        self.stranger_challenge = stranger_challenge
+
         # ------------------ BUTTONS PARAMETERS ------------------
         # WINNER OPTIONS
         # LOSER OPTIONS
@@ -126,6 +128,9 @@ class GameLevel(MouseResponsive, Slide, PersistentObject):
         self._robbed_channel_index = None
         self._win_progress_bar.nullify_progress()
         self._lose_progress_bar.nullify_progress()
+        for challenge in self._metal_challenge_dict.values():
+            challenge.nullify_progress()
+        self.stranger_challenge.nullify_progress()
         # init channels again
         self._init_channels()
         self._init_droplets_deque()
@@ -168,9 +173,8 @@ class GameLevel(MouseResponsive, Slide, PersistentObject):
             for metal in metals:
                 challenge_info = level_parameters["Challenges"][metal.name]
                 coordinates = np.array(challenge_info["coordinates"])
-                timer_color = challenge_info["timer_color"]
-                # fixme now only gold because not all images are ready yet
-                challenge = Challenge(coordinates, Metals.GOLD, challenges_time, timer_color, game_constants.MOUSE_KEY)
+                challenge = Challenge(coordinates, metal, challenges_time, game_constants.MOUSE_KEY,
+                                      game_constants.CHALLENGE_BG)
                 self._metal_challenge_dict[metal] = challenge
 
     def _init_from_file(self):
@@ -276,7 +280,13 @@ class GameLevel(MouseResponsive, Slide, PersistentObject):
                 if link_intention == UserIntention.SWITCH_ON:
                     if self._channels[channel_num].link_stage == LinkStage.CHALLENGE_PROPOSAL:
                         metal = self._channels[channel_num].link_metal
-                        self._current_challenge = self._metal_challenge_dict[metal]
+                        # stranger replaces first challenge with his challenge
+                        if self._navigator.bonus == Bonuses.STRANGER:
+                            self._current_challenge = self.stranger_challenge
+                            self._navigator.bonus = None
+                        else:
+                            self._current_challenge = self._metal_challenge_dict[metal]
+
                         self._current_challenge.refresh_clock()
                         self._navigator.switch_to_play_state(LvlStage.CHALLENGE)
                     else:

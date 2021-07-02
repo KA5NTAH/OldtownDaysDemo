@@ -15,7 +15,7 @@ class Navigator:
         self._current_level_state = LvlStage.USUAL_PLAY
         self.current_education_step = 0
         self._displayed_achievement = None
-        self._bonus = Bonuses.CRONE
+        self._bonus = None
 
     @property
     def bonus(self):

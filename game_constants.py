@@ -34,6 +34,8 @@ PERSISTENT_LEVEL_INFO_PATH = os.path.join(PERSISTENT_INFO_DIR, "levels_info")
 CURRENCIES_MANAGER_DIR = os.path.join(RESOURSES_DIR, "CurrenciesManager")
 BONUSES_ICONS_DIR = os.path.join(RESOURSES_DIR, "BonusesIcons")
 BONUSES_LVL_ICONS_DIR = os.path.join(RESOURSES_DIR, "BonusesLvlIcons")
+CHALLENGE_FOLDER = os.path.join(RESOURSES_DIR, 'Challenge')
+CHALLENGE_BACKGROUNDS_FOLDER = os.path.join(RESOURSES_DIR, 'ChallengeBackgrounds')
 # GAME CONSTANTS
 MOUSE_KEY = 0
 LINKS_SWAP_THRD = 0.2
@@ -215,7 +217,6 @@ for folder_name, pos in zip(sorted(os.listdir(LVL_BUTTONS_DIR)), LVL_BUTTONS_POS
 # Challenge
 CHALLENGE_TARGET_RADIUS = 30
 CHALLENGE_TIMER_LINE_WIDTH = 20
-CHALLENGE_FOLDER = os.path.join(RESOURSES_DIR, 'Challenge')
 CHALLENGE_IMAGES = {}
 """ 
 expected challenge folder structure
@@ -233,14 +234,30 @@ expected challenge folder structure
 ....    
 """
 
+
+STRANGER_CHALLENGE_BG = pygame.image.load(os.path.join(CHALLENGE_BACKGROUNDS_FOLDER, 'StrangerBG.png'))
+STRANGER_CHALLENGE_COORDIANTES = [[577, 148],
+                                  [690, 154],
+                                  [462, 308],
+                                  [766, 318],
+                                  [1039, 361],
+                                  [115, 425],
+                                  [619, 456],
+                                  [338, 567],
+                                  [887, 534],
+                                  [630, 640]]
+STRANGER_CHALLENGE_TIME = 7000
+
+CHALLENGE_BG = pygame.image.load(os.path.join(CHALLENGE_BACKGROUNDS_FOLDER, 'ChallengeBG.png'))
+RGB_METALS_COLORS = {Metals.GOLD: (255, 215, 0),
+                     Metals.SILVER: (196, 202, 206),
+                     Metals.COPPER: (184, 115, 51),
+                     Metals.BRONZE: (175, 149, 0),
+                     Metals.BLACK_IRON: (59, 61, 62)}
+
 for metal in Metals:
     curr_info_dict = {}
     challenge_sub_folder = os.path.join(CHALLENGE_FOLDER, metal.name)
-    if not os.path.exists(challenge_sub_folder):
-        continue
-    bg_img = pygame.image.load(os.path.join(challenge_sub_folder, 'background_image.png'))
-    curr_info_dict['bg_img'] = bg_img
-
     targets_sub_folders = sorted(os.path.join(challenge_sub_folder, f) for f in os.listdir(challenge_sub_folder))
     targets_sub_folders = filter(lambda path: os.path.isdir(path), targets_sub_folders)
     targets_images = []

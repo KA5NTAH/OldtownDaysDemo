@@ -25,6 +25,8 @@ from winner_back_to_level_command import WinnerBackToLevelCommand
 from education_forward_command import EducationalForwardCommand
 from education_back_command import EducationBackCommand
 from responsive_objects.keyboard_button import KeyboardButton
+from game_enums.metals import Metals
+from challenge import Challenge
 import utils
 
 
@@ -50,6 +52,11 @@ class Game:
         self._navigator = Navigator()
         self._achievement_manager = AchievementManager(game_constants.ACHIEVEMENTS_INFO_PATH)
         self._currencies_manager = CurrenciesManager(game_constants.CURRENCIES_INFO_PATH)
+        self.stranger_challenge = Challenge(game_constants.STRANGER_CHALLENGE_COORDIANTES,
+                                            Metals.BLACK_IRON,
+                                            game_constants.STRANGER_CHALLENGE_TIME,
+                                            game_constants.MOUSE_KEY,
+                                            game_constants.STRANGER_CHALLENGE_BG)
 
         # -------------------------- BACKGROUNDS --------------------------
         self._menu_bg = game_constants.MENU_BACKGROUND
@@ -83,6 +90,7 @@ class Game:
         self._level_number = len(self._levels)
         self.education_forward = KeyboardButton(pygame.K_RIGHT, EducationalForwardCommand(self._navigator))
         self.education_back = KeyboardButton(pygame.K_LEFT, EducationBackCommand(self._navigator))
+
 
     def _draw_buttons(self, buttons, screen):
         for b in buttons:
@@ -220,7 +228,7 @@ class Game:
         for cfg_path, persistent_cfg_path in zip(configs_paths, persistent_info_paths):
             level = GameLevel(game_constants.MOUSE_KEY, persistent_cfg_path, cfg_path, self._navigator,
                               self._currencies_manager, self._achievement_manager,
-                              self._loser_options_buttons)
+                              self._loser_options_buttons, self.stranger_challenge)
             levels.append(level)
         return levels
 

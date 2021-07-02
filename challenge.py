@@ -8,6 +8,7 @@ from responsive_objects.slide import Slide
 from responsive_objects.mouse_responsive import MouseResponsive
 from achievement_manager import AchievementManager
 from game_enums.achievement_tracking_values import AchievementTrackingValues
+from game_enums.metals import Metals
 import random
 import numpy as np
 import sys
@@ -24,17 +25,21 @@ class Challenge(MouseResponsive, Slide, ExpiringObject):
     If player misses or breaks order then he must start again If he does not meet time ends challenge is not considered
     completed
     """
-    def __init__(self, targets_coordinates, metal, time, timer_color, mouse_key):
+    def __init__(self, targets_coordinates, metal, time, mouse_key, bg_image):
         super().__init__(mouse_key)
         ExpiringObject.__init__(self, time)
         self._metal = metal
-        self._bg_image = game_constants.CHALLENGE_IMAGES[self._metal]['bg_img']
+        self._bg_image = bg_image
         self._targets_coordinates = targets_coordinates
         self._targets = self._init_targets()
         self._current_target_ind = 0
         self._targets_num = len(self._targets_coordinates)
-        self._timer_color = timer_color
+        self._timer_color = game_constants.RGB_METALS_COLORS[metal]
         self._perfect = True
+
+    def nullify_progress(self):
+        self._current_target_ind = 0
+        self._ttl = self._life_time
 
     def _init_targets(self):
         targets = []
