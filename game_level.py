@@ -122,6 +122,8 @@ class GameLevel(MouseResponsive, Slide, PersistentObject):
         self._links_count = len(self._metals)
         self._complete_links_dict = dict.fromkeys(self._metals, False)
         self._complete_links_count = 0
+        self._controlled_link = None
+        self._robbed_channel_index = None
         self._win_progress_bar.nullify_progress()
         self._lose_progress_bar.nullify_progress()
         # init channels again
@@ -214,6 +216,9 @@ class GameLevel(MouseResponsive, Slide, PersistentObject):
         self._lose_progress_bar.increment_progress()
 
     def _switch_to_loser_options(self):
+        self._controlled_link = None
+        self._robbed_channel_index = None
+        self._navigator.bonus = None
         self.deactivate_events()
         self._set_looser_buttons()
         self._navigator.switch_to_play_state(LvlStage.LOSER_OPTIONS)
@@ -320,12 +325,25 @@ class GameLevel(MouseResponsive, Slide, PersistentObject):
         indexes_to_keep = []
         for coin_index in range(len(self._coins)):
             coin_intention = self._coins[coin_index].get_user_intention_and_update_track()
-            if coin_intention == UserIntention.SWITCH_ON:
+            if coin_intention == UserIntention.SWITCH_OFF:
                 kind = self._coins[coin_index].coin_kind
                 if kind == CoinsKinds.BLACKFYRE_COIN:
                     achievement_manager.update_tracking_value(AchievementTrackingValues.COLLECTED_BLACKFYRE_COINS)
+                    # crone favour allows one time blackfyre coin pick
+                    if self._navigator.bonus == Bonuses.CRONE:
+                        self._navigator.bonus = None
+                    else:
+                        self._switch_to_loser_options()
                 else:
                     currencies_manager.record_coin_pick(kind)
+                    # maiden favour doubles faith coins revenue
+                    if self._navigator.bonus == Bonuses.MAIDEN and kind == CoinsKinds.FAITH_COIN:
+                        currencies_manager.record_coin_pick(kind)
+                    # warrior favour doubles faith coins revenue
+                    if self._navigator.bonus == Bonuses.WARRIOR and kind == CoinsKinds.TARGARYEN_COIN:
+                        currencies_manager.record_coin_pick(kind)
+
+                    # even if our revenue doubles achievement manager records only one pick
                     if kind == CoinsKinds.TARGARYEN_COIN:
                         achievement_manager.update_tracking_value(AchievementTrackingValues.COLLECTED_GOLD)
                     if kind == CoinsKinds.FAITH_COIN:
@@ -335,8 +353,12 @@ class GameLevel(MouseResponsive, Slide, PersistentObject):
         self._coins = [c for (ind, c) in enumerate(self._coins) if ind in indexes_to_keep]
 
     def _handle_successful_challenge(self):
-        # todo implement
-        pass
+        # todo dont forget to handle stranger challenge differently
+        if self._navigator.bonus == Bonuses.STRANGER:
+            pass
+        else:
+            # todo implement
+            pass
 
     def update(self):
         """Level update"""
@@ -352,7 +374,11 @@ class GameLevel(MouseResponsive, Slide, PersistentObject):
             for coin_index in range(len(self._coins)):
                 self._coins[coin_index].update_ttl()
             for chan_index in range(len(self._channels)):
-                self._channels[chan_index].update()
+                # smith doubles amount of metal in drop
+                if self._navigator.bonus == Bonuses.SMITH:
+                    self._channels[chan_index].update(link_fills_per_drop=2)
+                else:
+                    self._channels[chan_index].update()
         elif self._navigator.current_level_state == LvlStage.CHALLENGE:
             success = self._current_challenge.update_and_return_result(self._achievement_manager)
             if success is not None:
@@ -378,12 +404,12 @@ class GameLevel(MouseResponsive, Slide, PersistentObject):
         elif self._navigator.current_level_state == LvlStage.TRIAL_OF_THE_SEVEN_RESULT:
             """ process correct button input """
             utils.process_buttons([self._result_trial_button[self._generated_trial_result]])
-        # discard expired coins
-        # self._coins = [c for c in self._coins if c.is_still_alive()]
 
     def draw(self, screen):
         if self._navigator.current_level_state == LvlStage.USUAL_PLAY:
             screen.blit(self._level_background, (0, 0))
+            screen.blit(game_constants.BONUSES_LVL_ICONS_IMAGES[self._navigator.bonus],
+                        game_constants.BONUS_LVL_COORD)
             self._currencies_manager.draw(screen)
             self._win_progress_bar.draw(screen)
             self._lose_progress_bar.draw(screen)

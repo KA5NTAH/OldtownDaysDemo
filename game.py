@@ -294,6 +294,7 @@ class Game:
             self._display_achievement(screen, ach_name)
         if self._navigator.current_state == GameState.LEVEL_CHOOSING:
             screen.blit(self._level_choosing_bg, (0, 0))
+            screen.blit(game_constants.BONUSES_ICONS_IMAGES[self._navigator.bonus], game_constants.BONUS_MENU_COORD)
             self._currencies_manager.draw(screen)
             self._draw_level_buttons(screen)
         if self._navigator.current_state == GameState.PLAY:

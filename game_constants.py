@@ -32,6 +32,8 @@ CURRENCIES_INFO_PATH = os.path.join(PERSISTENT_INFO_DIR, "currencies_info.json")
 LEVELS_CONFIGS_PATH = os.path.join(SCRIPT_DIR, "levels_parameters")
 PERSISTENT_LEVEL_INFO_PATH = os.path.join(PERSISTENT_INFO_DIR, "levels_info")
 CURRENCIES_MANAGER_DIR = os.path.join(RESOURSES_DIR, "CurrenciesManager")
+BONUSES_ICONS_DIR = os.path.join(RESOURSES_DIR, "BonusesIcons")
+BONUSES_LVL_ICONS_DIR = os.path.join(RESOURSES_DIR, "BonusesLvlIcons")
 # GAME CONSTANTS
 MOUSE_KEY = 0
 LINKS_SWAP_THRD = 0.2
@@ -396,3 +398,19 @@ TRIAL_BUTTON_IMAGES = [pygame.image.load(os.path.join(TRIAL_BUTTON_FOLDER, "idle
 TARG_COIN_MINIATURE = pygame.image.load(os.path.join(CURRENCIES_MANAGER_DIR, "targ_miniature.png"))
 FAITH_COIN_MINIATURE = pygame.image.load(os.path.join(CURRENCIES_MANAGER_DIR, "faith_miniature.png"))
 CURRENCIES_MANAGER_BG = pygame.image.load(os.path.join(CURRENCIES_MANAGER_DIR, "bg.png"))
+
+
+# Bonuses Icons
+BONUS_MENU_COORD = (975, 247)
+BONUSES_ICONS_IMAGES = {None: pygame.image.load(os.path.join(BONUSES_ICONS_DIR, "BLANK.png"))}
+for bonus in Bonuses:
+    path = os.path.join(BONUSES_ICONS_DIR, f"{bonus.name}.png")
+    BONUSES_ICONS_IMAGES[bonus] = pygame.image.load(path)
+
+
+# Bonuses In level Icons
+BONUS_LVL_COORD = (1110, 289)
+BONUSES_LVL_ICONS_IMAGES = {None: pygame.image.load(os.path.join(BONUSES_LVL_ICONS_DIR, "BLANK.png"))}
+for bonus in Bonuses:
+    path = os.path.join(BONUSES_LVL_ICONS_DIR, f"{bonus.name}.png")
+    BONUSES_LVL_ICONS_IMAGES[bonus] = pygame.image.load(path)

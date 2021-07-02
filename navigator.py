@@ -15,7 +15,16 @@ class Navigator:
         self._current_level_state = LvlStage.USUAL_PLAY
         self.current_education_step = 0
         self._displayed_achievement = None
-        self._bonus = None
+        self._bonus = Bonuses.CRONE
+
+    @property
+    def bonus(self):
+        return self._bonus
+
+    @bonus.setter
+    def bonus(self, x):
+        assert x in Bonuses or x is None, "Bonus should be type None or Bonuses"
+        self._bonus = x
 
     @property
     def current_state(self):
