@@ -1,12 +1,10 @@
 {
-  "Links": ["BLACK_IRON", "SILVER"],
+  "Links": ["BLACK_IRON", "GOLD"],
   "Challenges": {
     "BLACK_IRON": {
-        "coordinates": [[100, 100], [500, 200], [900, 100], [1000, 500], [100, 600]],
-        "timer_color": [255, 0, 0]},
-    "SILVER": {
-       "coordinates": [[100, 100], [500, 200], [900, 100], [1000, 500], [100, 600]],
-       "timer_color": [255, 0, 0]}
+        "coordinates": [[100, 100], [500, 200], [900, 100], [1000, 500], [100, 600]]},
+    "GOLD": {
+       "coordinates": [[100, 100], [500, 200], [900, 100], [1000, 500], [100, 600]]}
   },
   "Challenges_time": 10000,
   "Link_filling_rate": 50,
