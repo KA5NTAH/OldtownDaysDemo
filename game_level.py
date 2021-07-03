@@ -42,7 +42,7 @@ from accept_trial_result_command import AcceptTrialResultCommand
 class GameLevel(MouseResponsive, Slide, PersistentObject):
     def __init__(self, mouse_key: int, persistent_cfg_path: str, level_info_cfg_path: str, navigator: Navigator,
                  currencies_manager: CurrenciesManager, achievement_manager: AchievementManager,
-                 loser_options_buttons, stranger_challenge):
+                 loser_options_buttons, stranger_challenge, mode='normal'):
         # super().__init__(mouse_key)
         PersistentObject.__init__(self, persistent_cfg_path)
         self._level_parameters_cfg_path = level_info_cfg_path
@@ -283,7 +283,6 @@ class GameLevel(MouseResponsive, Slide, PersistentObject):
                         # stranger replaces first challenge with his challenge
                         if self._navigator.bonus == Bonuses.STRANGER:
                             self._current_challenge = self.stranger_challenge
-                            self._navigator.bonus = None
                         else:
                             self._current_challenge = self._metal_challenge_dict[metal]
 
@@ -363,12 +362,10 @@ class GameLevel(MouseResponsive, Slide, PersistentObject):
         self._coins = [c for (ind, c) in enumerate(self._coins) if ind in indexes_to_keep]
 
     def _handle_successful_challenge(self):
-        # todo dont forget to handle stranger challenge differently
         if self._navigator.bonus == Bonuses.STRANGER:
-            pass
+            self._currencies_manager.record_coin_pick(CoinsKinds.TARGARYEN_COIN, game_constants.STRANGER_CHALLENGE_COINS_REWARD)
         else:
-            # todo implement
-            pass
+            self._currencies_manager.record_coin_pick(CoinsKinds.TARGARYEN_COIN, game_constants.CHALLENGE_BOOST)
 
     def update(self):
         """Level update"""
@@ -396,6 +393,8 @@ class GameLevel(MouseResponsive, Slide, PersistentObject):
                     self._handle_successful_challenge()
                 self._refresh_expiring_objects()
                 self._navigator.switch_to_play_state(LvlStage.USUAL_PLAY)
+                if self._navigator.bonus == Bonuses.STRANGER:
+                    self._navigator.bonus = None
         elif self._navigator.current_level_state == LvlStage.LOSER_OPTIONS:
             utils.process_buttons([self._current_bribe_button,
                                    self._current_trial_button,

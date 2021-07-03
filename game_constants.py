@@ -218,6 +218,8 @@ for folder_name, pos in zip(sorted(os.listdir(LVL_BUTTONS_DIR)), LVL_BUTTONS_POS
 CHALLENGE_TARGET_RADIUS = 30
 CHALLENGE_TIMER_LINE_WIDTH = 20
 CHALLENGE_IMAGES = {}
+CHALLENGE_BOOST = 10
+STRANGER_CHALLENGE_COINS_REWARD = 30
 """ 
 expected challenge folder structure
 - metal_key

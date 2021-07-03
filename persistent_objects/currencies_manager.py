@@ -69,8 +69,8 @@ class CurrenciesManager(PersistentObject):
         self._currencies_info[coin_kind.name] -= amount
         self.dump_into_file()
 
-    def record_coin_pick(self, coin_kind: CoinsKinds) -> None:
-        self._currencies_info[coin_kind.name] += 1
+    def record_coin_pick(self, coin_kind: CoinsKinds, amount=1) -> None:
+        self._currencies_info[coin_kind.name] += amount
         self.dump_into_file()
 
     def _init_from_file(self) -> None:
