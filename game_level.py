@@ -2,7 +2,7 @@ from responsive_objects.slide import Slide
 from responsive_objects.mouse_responsive import MouseResponsive
 from link import Link
 import os
-from droplet import Droplet  # fixme is it necessary
+from droplet import Droplet
 from channel import Channel
 import game_constants
 from game_enums.bonuses import Bonuses
@@ -33,11 +33,6 @@ from progress_bar import ProgressBar
 from responsive_objects.button import Button
 from accept_trial_result_command import AcceptTrialResultCommand
 
-# todo finish draw functions: draw fail/winning progress
-# todo add trial of the sevens
-# todo add images for progress
-# todo add bonus interaction and images for bonus
-
 
 class GameLevel(MouseResponsive, Slide, PersistentObject):
     def __init__(self, mouse_key: int, persistent_cfg_path: str, level_info_cfg_path: str, navigator: Navigator,
@@ -45,6 +40,7 @@ class GameLevel(MouseResponsive, Slide, PersistentObject):
                  loser_options_buttons, stranger_challenge, mode='normal'):
         # super().__init__(mouse_key)
         PersistentObject.__init__(self, persistent_cfg_path)
+        self.mode = mode
         self._level_parameters_cfg_path = level_info_cfg_path
         self._availability_info = {"unlocked": False}
         self._init_from_file()
@@ -383,9 +379,9 @@ class GameLevel(MouseResponsive, Slide, PersistentObject):
             for chan_index in range(len(self._channels)):
                 # smith doubles amount of metal in drop
                 if self._navigator.bonus == Bonuses.SMITH:
-                    self._channels[chan_index].update(link_fills_per_drop=2)
+                    self._channels[chan_index].update(link_fills_per_drop=2, mode=self.mode)
                 else:
-                    self._channels[chan_index].update()
+                    self._channels[chan_index].update(mode=self.mode)
         elif self._navigator.current_level_state == LvlStage.CHALLENGE:
             success = self._current_challenge.update_and_return_result(self._achievement_manager)
             if success is not None:
@@ -461,6 +457,8 @@ class GameLevel(MouseResponsive, Slide, PersistentObject):
     def _set_drop_at_random_channel(self):
         index = rd.randrange(len(self._channels))
         metal = self._droplets_queue.pop()
+        if self.mode == 'infinite':
+            self._droplets_queue.appendleft(metal)
         self._channels[index].create_and_set_ball(metal)
 
 

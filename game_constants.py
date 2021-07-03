@@ -433,3 +433,7 @@ BONUSES_LVL_ICONS_IMAGES = {None: pygame.image.load(os.path.join(BONUSES_LVL_ICO
 for bonus in Bonuses:
     path = os.path.join(BONUSES_LVL_ICONS_DIR, f"{bonus.name}.png")
     BONUSES_LVL_ICONS_IMAGES[bonus] = pygame.image.load(path)
+
+
+INFINITE_LVL_CFG = os.path.join(SCRIPT_DIR, 'infinite_level_cfg.json')
+INFINITE_LVL_PERS_CFG = os.path.join(SCRIPT_DIR, 'infinite_unlocked.json')

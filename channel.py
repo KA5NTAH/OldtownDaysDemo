@@ -49,7 +49,7 @@ class Channel:
 	def link_is_available(self):
 		return self._link is not None
 
-	def update(self, link_fills_per_drop=1):
+	def update(self, link_fills_per_drop=1, mode='normal'):
 		""" All droplets fall
 		Then if droplet is in the place where link should be there is three possible outcomes
 		1) There is link, and droplet is of the same metal - success
@@ -70,7 +70,7 @@ class Channel:
 				else:
 					if self._link.metal == self._droplets[index].metal:
 						for i in range(link_fills_per_drop):
-							self._link.pour_metal()
+							self._link.pour_metal(mode=mode)
 					else:
 						pygame.event.post(game_constants.RUINED_DROP_EVENT)
 		# keep only ones that still move

@@ -2,6 +2,7 @@ from enum import Enum, auto
 import pygame
 from game_enums.game_state import GameState
 from game_enums.bonuses import Bonuses
+from game_enums.achievement_tracking_values import AchievementTrackingValues
 from responsive_objects.button import Button
 import sys
 import os
@@ -91,24 +92,22 @@ class Game:
         self.education_forward = KeyboardButton(pygame.K_RIGHT, EducationalForwardCommand(self._navigator))
         self.education_back = KeyboardButton(pygame.K_LEFT, EducationBackCommand(self._navigator))
 
+        self.infinite_level = GameLevel(game_constants.MOUSE_KEY, game_constants.INFINITE_LVL_PERS_CFG,
+                                        game_constants.INFINITE_LVL_CFG, self._navigator,
+                                        self._currencies_manager, self._achievement_manager,
+                                        self._loser_options_buttons, self.stranger_challenge, mode='infinite')
 
     def _draw_buttons(self, buttons, screen):
         for b in buttons:
             b.draw(screen)
 
     def _get_achievement_completness(self):
-        # todo cache achievement completeness and get new only if needed
         res = self._achievement_manager.get_achievements_completeness()
-        dummy = True
-        if dummy:
-            for key in res.keys():
-                res[key] = True
         return res
 
     def _draw_achievement_buttons(self, screen):
         completeness_map = self._get_achievement_completness()
         for key in completeness_map.keys():
-            # fixme delete later needed because not all images are ready
             if key not in self._achievements_info:
                 continue
             if completeness_map[key]:
@@ -255,6 +254,12 @@ class Game:
             utils.process_buttons([self.education_forward, self.education_back])
         if self._navigator.current_state == GameState.GAME_MODE_CHOOSING:
             utils.process_buttons(self._game_choosing_buttons)
+            # if we clicked on infinte play then prepare level
+            if self._navigator.current_state == GameState.INFINITE_PLAY:
+                self.infinite_level.activate_events()
+                self.infinite_level.nullify_progress()
+        if self._navigator.current_state == GameState.INFINITE_PLAY:
+            self.infinite_level.update()
         if self._navigator.current_state == GameState.LEVEL_CHOOSING:
             self._process_level_buttons()
         if self._navigator.current_state == GameState.ACHIEVEMENTS:
@@ -269,6 +274,11 @@ class Game:
                 utils.process_buttons([self._winner_options_buttons[1]])  # no next level allow only return to menu
             else:
                 utils.process_buttons(self._winner_options_buttons)
+
+        # check negative balance
+        if self._currencies_manager.targ_coins_balance < 0 or self._currencies_manager.faith_coins_balance < 0:
+            self._achievement_manager.update_tracking_value(AchievementTrackingValues.NEGATIVE_BALANCE)
+
         if self._navigator.current_state == GameState.EXIT:
             self._currencies_manager.dump_into_file()
             self._achievement_manager.dump_into_file()
@@ -314,6 +324,8 @@ class Game:
                 self._winner_options_buttons[1].draw(screen)
             else:
                 self._draw_buttons(self._winner_options_buttons, screen)
+        if self._navigator.current_state == GameState.INFINITE_PLAY:
+            self.infinite_level.draw(screen)
 
     def run(self):
         while True:

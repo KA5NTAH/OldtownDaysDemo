@@ -71,8 +71,12 @@ class Link(RectangleResponsive, MouseResponsive, ExpiringObject):
 			screen.blit(upper_part, start_pos, (*A, *B))
 			screen.blit(lower_part, (start_pos[0], start_pos[1] + surface_y), (*C, *D))
 
-	def pour_metal(self):
+	def pour_metal(self, mode='normal'):
 		self._filled_lvl = min(self._height, self._filled_lvl + self._filling_rate)
+		# just start filling link again when playing in infinite mode
+		if mode == 'infinite':
+			if self._filled_lvl == self._height:
+				self._filled_lvl = self._filling_rate
 
 	def update(self):
 		""" If Link is filled than it should go into challenge proposal stage
