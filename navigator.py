@@ -46,8 +46,11 @@ class Navigator:
         self._played_level += 1
 
     def switch_to_state(self, dst_state):
-        """ do not allow forbidden states and two identical states in a row"""
-        if self._current_state not in self._forbidden_to_be_in_history and self._current_state != self._state_history[-1]:
+        """do not allow forbidden states and two identical states in a row"""
+        if (
+            self._current_state not in self._forbidden_to_be_in_history
+            and self._current_state != self._state_history[-1]
+        ):
             self._state_history.append(self._current_state)
         # if we left play state its history should be deleted
         if self._current_state == GameState.PLAY:
@@ -69,7 +72,7 @@ class Navigator:
 
     def set_achievement(self, achievement: AchievementsNames):
         self._displayed_achievement = achievement
-    
+
     def set_level(self, level_num: int):
         self._played_level = level_num
 

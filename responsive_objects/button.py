@@ -10,7 +10,10 @@ class Button(RectangleResponsive, MouseResponsive):
     its draw logic:
     1) When cursor is not pointed at button it is drawn in idle state
     2) When cursor is pointed at button it is drawn in ready-to-use (addressing) state"""
-    def __init__(self, idle_image, addressing_image, position, mouse_button, command: Command):
+
+    def __init__(
+        self, idle_image, addressing_image, position, mouse_button, command: Command
+    ):
         # todo rename addressing image with something more appropriate
         self._command = command
         self._idle_image = idle_image

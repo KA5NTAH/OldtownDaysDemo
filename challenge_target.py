@@ -9,7 +9,9 @@ BLEAK = (15, 15, 15)
 
 class ChallengeTarget(CircleResponsive, MouseResponsive):
     # todo idk rename or something
-    def __init__(self, trace_image, idle_image, calling_image, cx, cy, radius, mouse_key):
+    def __init__(
+        self, trace_image, idle_image, calling_image, cx, cy, radius, mouse_key
+    ):
         self._trace_image = trace_image
         self._idle_image = idle_image
         self._calling_image = calling_image
@@ -31,5 +33,3 @@ class ChallengeTarget(CircleResponsive, MouseResponsive):
 
     def draw_calling(self, screen):
         screen.blit(self._calling_image, self._drawing_position)
-
-

@@ -31,9 +31,7 @@ class TrialOfTheSeven(ExpiringObject):
         return (1, 1)
 
     def update(self, level_progress, currencies_manager):
-        """
-
-        """
+        """ """
         self.update_ttl()
         if self.is_still_alive():
             # generate current god if old time is gone
@@ -47,24 +45,32 @@ class TrialOfTheSeven(ExpiringObject):
                 self._result_is_generated = True
                 if self._result_bonus == Bonuses.FATHER:
                     if level_progress >= game_constants.FATHERS_JUDGEMENT_THRD:
-                        currencies_manager.spend_coins(CoinsKinds.FAITH_COIN, game_constants.FATHERS_PUNISHMENT)
-                        self._image_with_description = game_constants.BONUSES_IMAGES[self._result_bonus]['selected']
+                        currencies_manager.spend_coins(
+                            CoinsKinds.FAITH_COIN, game_constants.FATHERS_PUNISHMENT
+                        )
+                        self._image_with_description = game_constants.BONUSES_IMAGES[
+                            self._result_bonus
+                        ]["selected"]
                     else:
                         self._image_with_description = 1
                 else:
                     self._image_with_description = 2
             else:
                 if self._result_bonus == Bonuses.MOTHER:
-                    user_intention = self._back_to_play_button.get_user_intention_and_update_track()
+                    user_intention = (
+                        self._back_to_play_button.get_user_intention_and_update_track()
+                    )
                 else:
-                    user_intention = self._exit_button.get_user_intention_and_update_track()
+                    user_intention = (
+                        self._exit_button.get_user_intention_and_update_track()
+                    )
                 if user_intention == UserIntention.SWITCH_ON:
                     return True
                 return None
 
     def draw(self, screen):
         if self.is_still_alive():
-            god_image = game_constants.BONUSES_IMAGES[self._current_god]['idle']
+            god_image = game_constants.BONUSES_IMAGES[self._current_god]["idle"]
             screen.blit(god_image, (0, 0))
         elif self._result_is_generated:
             pass
@@ -77,6 +83,7 @@ class TrialOfTheSeven(ExpiringObject):
 if __name__ == "__main__":
     import pygame
     import sys
+
     pygame.init()
     p = TrialOfTheSeven(10 * 1000)
     screen = pygame.display.set_mode((1200, 680))

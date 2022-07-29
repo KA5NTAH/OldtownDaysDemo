@@ -8,6 +8,7 @@ from link import Link
 from channel import Channel
 import utils
 from game_enums.game_state import GameState
+
 pygame.init()
 SCRIPT_DIR = os.path.dirname(__file__)
 # todo delete this
@@ -26,10 +27,10 @@ class EducationState(Enum):
     EndEducation = auto()
 
 
-EDUCATION_IMFOLDER = opj(SCRIPT_DIR, 'resourses', 'Education')
+EDUCATION_IMFOLDER = opj(SCRIPT_DIR, "resourses", "Education")
 EDUCATION_IMAGES = []
 for state in list(EducationState):
-    impath = opj(EDUCATION_IMFOLDER, f'{state.name}.png')
+    impath = opj(EDUCATION_IMFOLDER, f"{state.name}.png")
     image = pygame.image.load(impath)
     EDUCATION_IMAGES.append(image)
 
@@ -80,7 +81,7 @@ class Education:
 
 
 # todo delete this local tests
-if __name__ == '__main__':
+if __name__ == "__main__":
     width, height = 1000, 800
     black = (0, 0, 0)
     size = (width, height)

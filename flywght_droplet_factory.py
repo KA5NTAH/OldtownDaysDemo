@@ -4,6 +4,7 @@ from game_enums.metals import Metals
 
 class FlyweightDropletFactory:
     """Flyweight factory is used as in FLyweight pattern in order to reuse shared object states in convenient way"""
+
     _cache = {}
 
     @staticmethod

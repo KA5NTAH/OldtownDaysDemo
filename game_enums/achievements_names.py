@@ -24,4 +24,6 @@ class AchievementsNames(Enum):
     # bribes
     MAN_WITHOUT_HONOR = auto()  # 100 bribes
     # miscellaneous
-    BEGGAR_KING = auto()  # negative balance fixme mb flea_bottom_scum or smth flea bottom related?
+    BEGGAR_KING = (
+        auto()
+    )  # negative balance fixme mb flea_bottom_scum or smth flea bottom related?

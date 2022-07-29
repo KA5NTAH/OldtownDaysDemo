@@ -25,6 +25,7 @@ class Challenge(MouseResponsive, Slide, ExpiringObject):
     If player misses or breaks order then he must start again If he does not meet time ends challenge is not considered
     completed
     """
+
     def __init__(self, targets_coordinates, metal, time, mouse_key, bg_image):
         super().__init__(mouse_key)
         ExpiringObject.__init__(self, time)
@@ -44,8 +45,10 @@ class Challenge(MouseResponsive, Slide, ExpiringObject):
     def _init_targets(self):
         targets = []
         for num, coord in enumerate(self._targets_coordinates):
-            images = game_constants.CHALLENGE_IMAGES[self._metal]['targets_images'][num]
-            target = ChallengeTarget(*images, *coord, game_constants.CHALLENGE_TARGET_RADIUS, self._mouse_key)
+            images = game_constants.CHALLENGE_IMAGES[self._metal]["targets_images"][num]
+            target = ChallengeTarget(
+                *images, *coord, game_constants.CHALLENGE_TARGET_RADIUS, self._mouse_key
+            )
             targets.append(target)
         return targets
 
@@ -60,8 +63,13 @@ class Challenge(MouseResponsive, Slide, ExpiringObject):
         screen.blit(self._bg_image, (0, 0))
         # draw time track
         timer_line_len = game_constants.SCREEN_WIDTH * (self._ttl / self._life_time)
-        pygame.draw.line(screen, self._timer_color, (0, 0), (0 + int(timer_line_len), 0),
-                         game_constants.CHALLENGE_TIMER_LINE_WIDTH)
+        pygame.draw.line(
+            screen,
+            self._timer_color,
+            (0, 0),
+            (0 + int(timer_line_len), 0),
+            game_constants.CHALLENGE_TIMER_LINE_WIDTH,
+        )
         # draw all targets
         for num, target in enumerate(self._targets):
             if num < self._current_target_ind:
@@ -75,22 +83,33 @@ class Challenge(MouseResponsive, Slide, ExpiringObject):
         # reset progress and notify achievement manager
         self._current_target_ind = 0
         self._perfect = False
-        achievement_manager.update_tracking_value(AchievementTrackingValues.MISSES_IN_CHALLENGE)
+        achievement_manager.update_tracking_value(
+            AchievementTrackingValues.MISSES_IN_CHALLENGE
+        )
 
     def update_and_return_result(self, achievement_manager):
         # check if some target was pressed
         if self._current_target_ind == self._targets_num:
             # successful complete of challenge
             if self._perfect:
-                achievement_manager.update_tracking_value(AchievementTrackingValues.PERFECT_CHALLENGES)
-            achievement_manager.update_tracking_value(AchievementTrackingValues.COMPLETED_CHALLENGES)
+                achievement_manager.update_tracking_value(
+                    AchievementTrackingValues.PERFECT_CHALLENGES
+                )
+            achievement_manager.update_tracking_value(
+                AchievementTrackingValues.COMPLETED_CHALLENGES
+            )
             return True
         if not self.is_still_alive() and self._current_target_ind < self._targets_num:
-            achievement_manager.update_tracking_value(AchievementTrackingValues.RUINED_CHALLENGES)
+            achievement_manager.update_tracking_value(
+                AchievementTrackingValues.RUINED_CHALLENGES
+            )
             return False  # means fail
 
         slide_intention = self.get_user_intention_and_update_track()
-        user_actions = [self._targets[i].get_user_intention_and_update_track() for i in range(len(self._targets))]
+        user_actions = [
+            self._targets[i].get_user_intention_and_update_track()
+            for i in range(len(self._targets))
+        ]
         for num, action in enumerate(user_actions):
             if action == UserIntention.SWITCH_ON:
                 if num == self._current_target_ind:
@@ -105,14 +124,11 @@ class Challenge(MouseResponsive, Slide, ExpiringObject):
         self.update_ttl()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     pygame.init()
-    ccord = [[100, 100],
-             [500, 200],
-             [900, 100],
-             [1000, 500],
-             [100, 600]]
+    ccord = [[100, 100], [500, 200], [900, 100], [1000, 500], [100, 600]]
     from game_enums.metals import Metals
+
     c = Challenge(ccord, Metals.GOLD, 10000, (255, 0, 0), 0)
     c.shuffle_targets()
     screen = pygame.display.set_mode((1280, 680))

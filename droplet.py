@@ -30,4 +30,3 @@ class Droplet:
 
     def draw(self, screen):
         self._flyweight.draw(screen, self._rect)
-

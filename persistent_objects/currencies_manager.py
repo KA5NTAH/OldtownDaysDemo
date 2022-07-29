@@ -8,10 +8,13 @@ import os
 
 class CurrenciesManager(PersistentObject):
     """Class is responsible for storing info about currencies throughout all game sessions"""
+
     def __init__(self, config_path):
         super().__init__(config_path)
-        self._currencies_info = {CoinsKinds.TARGARYEN_COIN.name: 0,
-                                 CoinsKinds.FAITH_COIN.name: 0}
+        self._currencies_info = {
+            CoinsKinds.TARGARYEN_COIN.name: 0,
+            CoinsKinds.FAITH_COIN.name: 0,
+        }
         self._drawing_w = 257
         self._drawing_h = 158
         # todo import images in game_constants
@@ -33,23 +36,34 @@ class CurrenciesManager(PersistentObject):
         """
         if position is None:
             position = (game_constants.SCREEN_WIDTH - self._drawing_w, 0)
-        targ_coin_position = (position[0] + self._coin_border_offset[0],
-                              position[1] + self._coin_border_offset[1])
-        faith_coin_position = (position[0] + self._coin_border_offset[0],
-                               position[1] + self._coin_h + self._coins_y_gap + self._coin_border_offset[1])
+        targ_coin_position = (
+            position[0] + self._coin_border_offset[0],
+            position[1] + self._coin_border_offset[1],
+        )
+        faith_coin_position = (
+            position[0] + self._coin_border_offset[0],
+            position[1]
+            + self._coin_h
+            + self._coins_y_gap
+            + self._coin_border_offset[1],
+        )
         screen.blit(self._drawing_bg, position)
         screen.blit(self._targ_coin_miniature, targ_coin_position)
         screen.blit(self._faith_coin_miniauture, faith_coin_position)
 
         targ_text = f"{self._currencies_info[CoinsKinds.TARGARYEN_COIN.name]:06d}"
         targ_text_surf = self._font.render(targ_text, True, self._text_color)
-        targ_text_pos = (targ_coin_position[0] + self._coin_w + self._coin_text_offset[0],
-                         targ_coin_position[1] + self._coin_text_offset[1])
+        targ_text_pos = (
+            targ_coin_position[0] + self._coin_w + self._coin_text_offset[0],
+            targ_coin_position[1] + self._coin_text_offset[1],
+        )
 
         faith_text = f"{self._currencies_info[CoinsKinds.FAITH_COIN.name]:06d}"
         faith_text_surf = self._font.render(faith_text, True, self._text_color)
-        faith_text_pos = (faith_coin_position[0] + self._coin_w + self._coin_text_offset[0],
-                          faith_coin_position[1] + self._coin_text_offset[1])
+        faith_text_pos = (
+            faith_coin_position[0] + self._coin_w + self._coin_text_offset[0],
+            faith_coin_position[1] + self._coin_text_offset[1],
+        )
         screen.blit(targ_text_surf, targ_text_pos)
         screen.blit(faith_text_surf, faith_text_pos)
 
@@ -62,7 +76,7 @@ class CurrenciesManager(PersistentObject):
         return self._currencies_info[CoinsKinds.FAITH_COIN.name]
 
     def dump_into_file(self) -> None:
-        with open(self._config_path, 'w') as file:
+        with open(self._config_path, "w") as file:
             json.dump(self._currencies_info, file)
 
     def spend_coins(self, coin_kind, amount) -> None:

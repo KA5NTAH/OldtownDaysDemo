@@ -9,6 +9,7 @@ class ResponsiveObject(ABC):
     At every moment of time ResponsiveObject can tell if this action was done or not.
     Given two consecutive user's action Object can identify user's intention
     """
+
     def __init__(self, *args):
         self.last_directed_action = self._get_directed_action()
 
